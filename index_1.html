@@ -1,0 +1,1409 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retrofit Malabar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{ color-scheme:dark;
+  --bg:#1c2030; --panel:#262b3d; --panel2:#2f3550; --ink:#e9e6da; --muted:#a6a9b8;
+  --line:#141722; --amber:#f2b134; --green:#7bc96f; --red:#e5605b; --blue:#5aa9e6; --violet:#a98bd9;
+  --pix:'Silkscreen','Courier New',monospace; --mono:'VT323','Courier New',monospace;
+  --sans:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px}
+button{font-family:inherit;color:inherit}
+.pixbox{background:var(--panel);border:3px solid var(--line);box-shadow:inset 0 0 0 2px #3a4160}
+header{display:flex;align-items:center;gap:12px;padding:8px 14px;background:#151826;border-bottom:3px solid var(--line);flex-wrap:wrap}
+header h1{font-family:var(--pix);font-size:18px;margin:0;color:var(--amber);letter-spacing:1px;cursor:default;user-select:none}
+header .who{color:var(--muted);font-size:13px}
+header .spacer{flex:1}
+.chip{font-family:var(--pix);font-size:11px;padding:4px 8px;border:2px solid var(--line);background:var(--panel2);white-space:nowrap}
+.chip.ok{background:#2f5a35;color:#d8ffd0}
+.chip.code{background:#5a4a20;color:#ffe9a8}
+.btn{font-family:var(--pix);font-size:11px;padding:6px 10px;background:var(--panel2);border:2px solid var(--line);box-shadow:inset -2px -2px 0 #1b1f2e,inset 2px 2px 0 #4a5276;cursor:pointer}
+.btn:hover{background:#3a4263}
+.btn:active{box-shadow:inset 2px 2px 0 #1b1f2e}
+.btn.primary{background:#7a5a12;color:#fff3cf}
+.btn.primary:hover{background:#94701a}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+main{display:grid;grid-template-columns:310px minmax(0,1fr) 350px;gap:10px;padding:10px;height:calc(100% - 52px)}
+@media (max-width:1180px){main{grid-template-columns:290px minmax(0,1fr);height:auto;align-items:start}#hud{grid-column:1 / -1}#edit{max-height:80vh}#viewport{flex:none;height:62vh}#stage{position:sticky;top:0}}
+@media (max-width:760px){main{grid-template-columns:1fr}#edit{order:2}#stage{order:1}}
+.col{overflow:auto;min-height:0}
+#stage{display:flex;flex-direction:column;min-height:420px}
+#viewport{position:relative;flex:1;min-height:340px;background:#5d7a4e;border:3px solid var(--line);overflow:hidden}
+#cv{position:absolute;left:0;top:0;image-rendering:pixelated;image-rendering:crisp-edges;cursor:pointer}
+#labels{position:absolute;left:0;top:0;pointer-events:none}
+.lbl{position:absolute;transform:translate(-50%,-50%);font-family:var(--mono);font-size:17px;line-height:1;color:#fff;text-shadow:1px 1px 0 #000,-1px 1px 0 #000,1px -1px 0 #000,-1px -1px 0 #000;white-space:nowrap;text-align:center}
+.lbl small{display:block;font-size:14px;color:#ffe6a0}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 0}
+.seg{display:inline-flex;border:2px solid var(--line)}
+.seg button{font-family:var(--pix);font-size:10px;padding:5px 7px;background:var(--panel2);border:0;border-right:2px solid var(--line);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--amber);color:#1b1b1b}
+.tlabel{font-family:var(--pix);font-size:10px;color:var(--muted);margin-left:4px}
+.panel{padding:10px;margin-bottom:10px}
+.panel h2{font-family:var(--pix);font-size:13px;margin:0 0 8px;color:var(--amber);display:flex;justify-content:space-between;align-items:center}
+.panel h3{font-family:var(--pix);font-size:11px;margin:10px 0 6px;color:var(--blue)}
+.opt{margin:8px 0 10px;padding-bottom:8px;border-bottom:1px dashed #414868}
+.opt:last-child{border-bottom:0}
+.optlab{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin-bottom:4px;color:var(--ink)}
+.info{font-family:var(--pix);font-size:10px;width:20px;height:20px;line-height:16px;text-align:center;border:2px solid var(--line);background:#334;cursor:pointer;padding:0;flex:none}
+.info:hover{background:var(--blue);color:#000}
+.choices{display:flex;flex-wrap:wrap;gap:4px}
+.choices button{font-size:11.5px;padding:4px 6px;background:#1f2333;border:2px solid #3b4262;cursor:pointer;text-align:left}
+.choices button.on{border-color:var(--amber);background:#3d3420;color:#ffe6a0}
+.choices button .c{color:var(--muted);font-size:10.5px}
+.stepper{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.stepper button{font-family:var(--pix);font-size:11px;width:26px;height:24px;background:#1f2333;border:2px solid #3b4262;cursor:pointer}
+.stepper .v{font-family:var(--mono);font-size:19px;min-width:60px;text-align:center}
+.hint{font-size:12px;color:var(--muted);line-height:1.4}
+.metric{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:baseline;margin:6px 0}
+.metric .k{font-size:12.5px;color:var(--muted)}
+.metric .v{font-family:var(--mono);font-size:22px;text-align:right}
+.metric .d{grid-column:1/-1;font-size:11px}
+.up{color:var(--red)} .down{color:var(--green)}
+.bars{margin:4px 0 10px}
+.bar{display:grid;grid-template-columns:92px 1fr 64px;gap:6px;align-items:center;font-size:11px;margin:3px 0}
+.bar .track{height:12px;background:#1a1d2a;border:2px solid var(--line);position:relative}
+.bar .fill{position:absolute;left:0;top:0;bottom:0}
+.bar .num{font-family:var(--mono);font-size:16px;text-align:right}
+table.temps{width:100%;border-collapse:collapse;font-size:11.5px}
+table.temps th,table.temps td{padding:3px 2px;text-align:center;border-bottom:1px solid #353b55}
+table.temps th{font-family:var(--pix);font-size:9.5px;color:var(--muted);font-weight:normal}
+table.temps td:first-child{text-align:left;color:var(--ink);white-space:nowrap}
+table.temps td.t{font-family:var(--mono);font-size:16px}
+.task{padding:8px;border:2px solid var(--line);background:#20253a;margin:8px 0}
+.task .tt{font-family:var(--pix);font-size:11px;color:var(--amber);margin-bottom:4px}
+.crit{font-size:12px;margin:3px 0;display:flex;gap:6px}
+.crit .m{font-family:var(--pix);font-size:10px;width:14px}
+.crit.pass .m{color:var(--green)} .crit.fail .m{color:var(--red)}
+.modal-bg{position:fixed;inset:0;background:rgba(8,10,18,.78);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal-bg.show{display:flex}
+.modal{max-width:760px;width:100%;max-height:90vh;overflow:auto;padding:18px 20px}
+.modal h2{font-family:var(--pix);color:var(--amber);font-size:16px;margin:0 0 10px}
+.modal h3{font-family:var(--pix);color:var(--blue);font-size:12px;margin:14px 0 6px}
+.modal p,.modal li{line-height:1.5;font-size:14px}
+.modal input,.modal textarea{width:100%;padding:8px;background:#151826;color:var(--ink);border:2px solid #3b4262;font-family:var(--sans);font-size:14px}
+.modal textarea{min-height:110px}
+.quote{border-left:4px solid var(--amber);padding:4px 10px;margin:8px 0;color:#f3e7c4;font-style:italic;background:#2a2a30}
+.quote span{display:block;font-style:normal;color:var(--muted);font-size:12px;margin-top:3px}
+.codebox{font-family:var(--pix);font-size:26px;color:#ffe9a8;background:#151826;border:3px dashed var(--amber);padding:14px;text-align:center;margin:10px 0;letter-spacing:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:600px){.grid2{grid-template-columns:1fr}}
+.gcard{padding:10px;background:#20253a;border:2px solid var(--line)}
+.gcard h4{font-family:var(--pix);font-size:11px;margin:0 0 6px;color:var(--blue)}
+.gcard p{font-size:13px;margin:4px 0}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#151826;border:3px solid var(--amber);padding:8px 14px;font-family:var(--pix);font-size:11px;z-index:60;display:none}
+.chip.code{background:#5a4a20;color:#ffe9a8}
+body.sandbox #viewport{border-color:#c98a1a}
+.warn{color:#ffb36b;font-size:12px}
+.tag{display:inline-block;font-family:var(--pix);font-size:9px;padding:2px 4px;border:1px solid #555;margin-left:4px;color:var(--muted)}
+#tip{position:absolute;pointer-events:none;background:#151826;border:2px solid var(--amber);padding:4px 7px;font-size:12px;display:none;z-index:5;white-space:nowrap}
+.legend{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--muted)}
+.legend .sw{width:110px;height:10px;border:2px solid var(--line);background:linear-gradient(90deg,#3b6fd8,#5ec5e0,#8fdc7a,#f2d04a,#f08a3c,#d8443a)}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">RETROFIT: MALABAR</h1>
+  <span class="who" id="who"></span>
+  <span class="spacer"></span>
+  <span class="chip" id="chip1">TASK 1: —</span>
+  <span class="chip" id="chip2">TASK 2: —</span>
+  <button class="btn" id="btnSand">SANDBOX</button>
+  <button class="btn" id="btnGuide">FIELD GUIDE</button>
+  <button class="btn" id="btnCook">COOK SAYS</button>
+  <button class="btn" id="btnUndo">UNDO</button>
+  <button class="btn" id="btnReset">RESET</button>
+</header>
+<main>
+  <section class="col" id="edit"></section>
+  <section id="stage">
+    <div class="toolbar">
+      <span class="seg"><button id="rotL" title="Rotate view">⟲ 90°</button><button id="rotR" title="Rotate view">90° ⟳</button></span>
+      <span class="tlabel">VIEW</span><span class="seg" id="segView"></span>
+      <span class="tlabel">SEASON</span><span class="seg" id="segSeason"></span>
+      <span class="tlabel">TIME</span><span class="seg" id="segTime"></span>
+      <span class="tlabel">TEMPS</span><span class="seg" id="segMode"></span>
+    </div>
+    <div id="viewport"><canvas id="cv"></canvas><div id="labels"></div><div id="tip"></div></div>
+    <div class="toolbar"><span class="hint" id="stageHint">Click a room to select it. Rotate to see every side. Thermal view colours each room by temperature.</span><span class="spacer" style="flex:1"></span><span class="legend" id="legend" style="display:none">8°C <span class="sw"></span> 30°C</span></div>
+  </section>
+  <section class="col" id="hud"></section>
+</main>
+
+<div class="modal-bg" id="mStart"><div class="modal pixbox">
+  <h2>RETROFIT: MALABAR DRIVE</h2>
+  <p>It is 2026. Nigel Cook's house for K &amp; L Wilson on Malabar Drive, Ellerslie (permit drawings, 1994) is about 30 years old. Three parallel bays run east–west: on the north, a single-storey vaulted wing with a raised living room and an open kitchen; in the middle, a double-height conservatory with a glazed gable roof, motorised vents and glazed ends, used as the family's main living space; on the south, a two-storey vaulted wing behind a long curved wall, with bedrooms, studies and a bathroom off a gallery. The house is timber-framed and single-glazed; steel is used only for the courtyard's glazed structure. It is hot in summer and cold and damp in winter.</p>
+  <p>Your job: bring it up to date. Change the fabric, the glazing, the rooms and the systems, and watch what happens to temperature, humidity, running cost and carbon. Then decide whether Cook was right that "everything lies in the application".</p>
+  <h3>TASKS</h3>
+  <p>There are two tasks, one at a time. <b>Task 1:</b> outperform a standard 1990s New Zealand house. When you submit it, <b>Task 2</b> unlocks: reach the 2026 Building Code minimum. In the tasks the rooms stay as Cook designed them; you retrofit the fabric and systems. A separate <b>Sandbox</b> lets you change the rooms themselves. Each task has a <b>budget</b> and an <b>embodied-carbon allowance</b>: you cannot simply pick the best of everything. Every option shows what it adds in dollars and kg of CO₂e. Each task gives you a personal completion code.</p>
+  <h3>SIGN IN</h3>
+  <div class="grid2"><div><label class="hint">Your name</label><input id="inName" autocomplete="name"></div><div><label class="hint">Student ID (UPI or ID number)</label><input id="inId" autocomplete="off"></div></div>
+  <p class="hint">Your completion codes are tied to your student ID, so a code copied from someone else will not be accepted.</p>
+  <p class="hint"><b>This is an indicative teaching model, not a compliance tool.</b> The layout is simplified and the numbers show direction and rough size of change, not precise predictions.</p>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><button class="btn primary" id="btnStart">START ▶</button></div>
+</div></div>
+
+<div class="modal-bg" id="mInfo"><div class="modal pixbox"><div id="infoBody"></div><div style="text-align:right;margin-top:12px"><button class="btn" data-close>CLOSE</button></div></div></div>
+<div class="modal-bg" id="mSubmit"><div class="modal pixbox"><div id="submitBody"></div></div></div>
+<div class="modal-bg" id="mInstr"><div class="modal pixbox"><div id="instrBody"></div><div style="text-align:right;margin-top:12px"><button class="btn" data-close>CLOSE</button></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+/* ===================== CONFIG ===================== */
+const CONFIG = {
+  task1Saving: 0.30,
+  limits: {1:{cost:120000, ec:7000}, 2:{cost:200000, ec:12500}}, // retrofit budget (NZ$) and embodied-carbon allowance (kg CO2e) per task          // Task 1: cut heating+cooling cost by at least this fraction vs the 1990s house
+  elecPrice: 0.393,           // NZ$/kWh incl GST. MBIE QSDEP national average, 15 Nov 2025
+  exportPrice: 0.12,          // NZ$/kWh solar buy-back (indicative)
+  gridEF: 0.0787 + 0.0060,    // kg CO2e/kWh: MfE 2025 purchased electricity + T&D losses
+  hpCOP: 3.0,                 // EECA: average NZ heat pump puts out ~3x the heat of the power it uses
+  salt: 'HTC237-cook-wind-rain-2026',
+  instructorPass: 'kelly',
+  version: '1.0'
+};
+const SEASONS = {
+  winter:{label:'Winter (Jul)', days:92,  Tmin:7.3,  Tmax:14.6, Tg:12.5, vp:10.5, ghi:2.1, doy:196, solarShift:0.35},
+  spring:{label:'Spring/Autumn', days:183, Tmin:11.0, Tmax:18.6, Tg:15.0, vp:12.5, ghi:4.5, doy:288, solarShift:1.35},
+  summer:{label:'Summer (Jan)', days:90,  Tmin:15.8, Tmax:23.7, Tg:18.5, vp:17.5, ghi:6.1, doy:15,  solarShift:1.35}
+};
+const LAT = -36.9;
+const CELL = 0.5;
+
+/* ===================== OPTIONS CATALOGUE ===================== */
+// cost: indicative NZ$ (rough classroom estimates); ec: kg CO2e embodied (rough classroom estimates)
+const OPTS = {
+  occupants:{group:'Living', label:'How people live in it', info:'occupants', choices:[
+    {v:'dynamic', t:'Dynamic (Cook)', d:'Open windows and sliding doors when it helps, close curtains at night, adjust louvres.'},
+    {v:'passive', t:'Set-and-forget', d:'Windows and doors stay shut, curtains open, nothing gets adjusted.'}]},
+  structure:{group:'Fabric', label:'External insulation layer (walls)', info:'bridging', choices:[
+    {v:'timber', t:'None: timber frame only (as built)'},
+    {v:'wrap', t:'Add continuous external insulation + new cladding', d:'Wraps the timber frame so the studs no longer bridge the insulation; adds about R1.0.'}]},
+  wallR:{group:'Fabric', label:'Wall insulation (construction R-value)', info:'rvalue', choices:[
+    {v:1.5, t:'R1.5 (as built)'},{v:2.0, t:'R2.0'},{v:2.8, t:'R2.8'},{v:3.6, t:'R3.6'}]},
+  roofR:{group:'Fabric', label:'Roof insulation (all solid roofs)', info:'rvalue', choices:[
+    {v:1.9, t:'R1.9 (as built)'},{v:2.9, t:'R2.9'},{v:4.0, t:'R4.0'},{v:6.6, t:'R6.6'},{v:8.0, t:'R8.0'}]},
+  floorR:{group:'Fabric', label:'Floor slab (rooms)', info:'mass', choices:[
+    {v:1.0, t:'Uninsulated slab (as built)'},{v:1.5, t:'Edge insulation R1.5'},{v:2.5, t:'Lift & re-lay, R2.5', d:'Very disruptive: the slab is broken out and replaced.'}]},
+  airtight:{group:'Fabric', label:'Airtightness & ventilation', info:'airtight', choices:[
+    {v:'leaky', t:'As built (draughty)'},{v:'sealed', t:'Seal gaps & joinery'},{v:'mvhr', t:'Airtight + MVHR', d:'Mechanical ventilation with heat recovery: the Passive House approach.'}]},
+  frame:{group:'Glazing', label:'Window frames (all windows & doors)', info:'frames', choices:[
+    {v:'alu', t:'Keep existing aluminium'},{v:'alutb', t:'Thermally broken aluminium'},{v:'upvc', t:'uPVC'},{v:'timber', t:'Timber'}]},
+  glass:{group:'Glazing', label:'Glass (all windows & doors)', info:'glazing', choices:[
+    {v:'single', t:'Single (as built)'},{v:'double', t:'Double, clear', d:'Can be retrofitted into the existing aluminium frames.'},{v:'lowe', t:'Double, low-E + argon', d:'Can be retrofitted into the existing aluminium frames.'},{v:'triple', t:'Triple, low-E', d:'Too heavy for the existing frames: needs new windows.'}]},
+  curtains:{group:'Glazing', label:'Curtains', info:'curtains', choices:[
+    {v:'standard', t:'Standard curtains (as built)'},{v:'thermal', t:'Thermal lined curtains'}]},
+  shading:{group:'Glazing', label:'External shading (wings)', info:'shading', choices:[
+    {v:'none', t:'None (as built)'},{v:'eaves', t:'Fixed eaves / canopies'},{v:'louvres', t:'Adjustable external louvres'}]},
+  screens:{group:'Courtyard', label:'Glazed screens to the courtyard', info:'zoning', choices:[
+    {v:'open', t:'Kitchen & utility open (as built)'},{v:'kitchen', t:'Screen the kitchen'},{v:'both', t:'Screen kitchen & utility'}]},
+  roofFrac:{group:'Courtyard', label:'Share of courtyard roof that is glass', info:'roofglass', choices:[
+    {v:0, t:'0% (solid roof)'},{v:0.25, t:'25%'},{v:0.5, t:'50%'},{v:0.75, t:'75%'},{v:1, t:'100% (as built)'}]},
+  roofGlass:{group:'Courtyard', label:'Courtyard roof glass', info:'roofglass', choices:[
+    {v:'single', t:'Single glass (as built)'},{v:'lowe', t:'Double low-E'},{v:'loweShade', t:'Double low-E + retractable shade'}]},
+  courtFloor:{group:'Courtyard', label:'Courtyard floor', info:'mass', choices:[
+    {v:'tile', t:'Light tile on slab (as built)'},{v:'darktile', t:'Dark slate on slab'},{v:'deck', t:'Suspended timber floor'}]},
+  vents:{group:'Courtyard', label:'Courtyard roof vents', info:'vents', choices:[
+    {v:'auto', t:'Sensor-controlled (as built)'},{v:'autoNight', t:'Sensor + summer night purge'},{v:'manual', t:'Manual only'},{v:'none', t:'Fixed shut'}]},
+  fans:{group:'Systems', label:'Kitchen & bathroom extract fans', info:'moisture', choices:[
+    {v:'none', t:'None (as built)'},{v:'extract', t:'Ducted extract fans'}]},
+  heating:{group:'Systems', label:'Heating & cooling', info:'heating', choices:[
+    {v:'heaters', t:'Electric heaters (as built)'},{v:'heatpump', t:'Heat pumps (heat + cool)'},{v:'hvac', t:'Ducted whole-house HVAC', d:'Holds every space, including the courtyard, at 20–24°C around the clock. Windows stay shut.'}]},
+  pv:{group:'Systems', label:'Rooftop solar PV', info:'pv', choices:[
+    {v:0, t:'None (as built)'},{v:3, t:'3 kW'},{v:5, t:'5 kW'},{v:8, t:'8 kW'}]}
+};
+const ORIGINAL_OPTS = {occupants:'dynamic',structure:'timber',wallR:1.5,roofR:1.9,floorR:1.0,airtight:'leaky',frame:'alu',glass:'single',curtains:'standard',shading:'none',screens:'open',roofFrac:1,roofGlass:'single',courtFloor:'tile',vents:'auto',fans:'none',heating:'heaters',pv:0};
+
+// Window construction R-values (frame x glass). Double-clear row from BRANZ House Insulation Guide; others indicative.
+const WIN_R = {
+  single:{alu:0.15, alutb:0.16, upvc:0.18, timber:0.19},
+  double:{alu:0.26, alutb:0.32, upvc:0.40, timber:0.44},
+  lowe:  {alu:0.33, alutb:0.46, upvc:0.53, timber:0.56},
+  triple:{alu:0.40, alutb:0.62, upvc:0.80, timber:0.85}
+};
+const SHGC = {single:0.78, double:0.68, lowe:0.50, triple:0.40};
+const FRAME_FRAC = {alu:0.23, alutb:0.27, upvc:0.34, timber:0.41};
+const FRAME_COST = {alu:600, alutb:750, upvc:700, timber:1000}, GLASS_COST = {single:150, double:300, lowe:420, triple:650};
+const FRAME_EC = {alu:45, alutb:50, upvc:30, timber:15}, GLASS_EC = {single:15, double:30, lowe:33, triple:45};
+// Construction R-values already allow for timber studs; an external wrap adds a continuous layer.
+const WRAP_R = {timber:0, wrap:1.0};
+
+/* ===================== GEOMETRY (simplified from the 2026 survey plan) ===================== */
+// Grid cells are 0.5 m. x runs east, y runs south (north is -y). Lower floor 0, upper floor 1 (starts at LVL1Z).
+const LVL1Z = 2.7;
+// Simplified from Nigel Cook Architects, House for K & L Wilson, Malabar Dr, Ellerslie (permit drawings, March 1994).
+// x runs west to east, y runs north to south, 0.5 m cells. Three parallel east-west bays.
+// x runs west to east, y runs north to south, 0.5 m cells. fz = floor level relative to the main ground floor (m).
+const BASE_ROOMS = [
+  {id:'living',   name:'Living room',            type:'living',  lvl:0, x0:5,  y0:0,  x1:12, y1:8,  h:2.6, fz:0.5, glaze:{N:0.35, W:0.3, C:0.25}},
+  {id:'kitchen',  name:'Kitchen & dining',       type:'kitchen', lvl:0, x0:12, y0:0,  x1:23, y1:8,  h:2.9, glaze:{N:0.35, E:0.3, C:1}, open:true},
+  {id:'court',    name:'Courtyard',              type:'court',   lvl:0, x0:5,  y0:8,  x1:21, y1:14, h:6.2, glaze:{N:0.6, E:0.95, W:0.95, S:0}},
+  {id:'bed1',     name:'Double-height bedroom',  type:'bed',     lvl:0, x0:0,  y0:14, x1:5,  y1:21, h:5.0, fz:0.5, glaze:{N:0.15, W:0.2}, wins:{S:[]}},
+  {id:'entry',    name:'Entrance hall',          type:'hall',    lvl:0, x0:5,  y0:14, x1:8,  y1:21, h:2.6, glaze:{C:0.5}, wins:{S:[]}},
+  {id:'utility',  name:'Utility',                type:'rumpus',  lvl:0, x0:8,  y0:14, x1:17, y1:21, h:2.6, glaze:{C:1}, open:true, wins:{S:[{x0:6.0,x1:7.5,sill:1.45,head:1.9}]}},
+  {id:'bath',     name:'Bathroom',               type:'bath',    lvl:0, x0:17, y0:14, x1:21, y1:21, h:2.6, glaze:{C:0.1}, wins:{S:[{x0:9.0,x1:9.5,sill:1.3,head:2.0}]}},
+  {id:'bed4',     name:'Study / bedroom (1.4 m down)', type:'office', lvl:0, x0:21, y0:14, x1:27, y1:21, h:2.55, fz:-1.45, glaze:{N:0.2, E:0.15}, wins:{S:[]}},
+  {id:'gallery',  name:'Gallery',                type:'hall',    lvl:1, x0:5,  y0:14, x1:21, y1:16, h:2.6, open:true, glaze:{}},
+  {id:'single',   name:'Single bedroom',         type:'bed',     lvl:1, x0:5,  y0:16, x1:9,  y1:21, h:2.6, glaze:{C:0.2}, wins:{S:[{x0:3.5,x1:4.5,sill:0.5,head:1.9}]}},
+  {id:'main',     name:'Main bedroom',           type:'main',    lvl:1, x0:9,  y0:16, x1:19, y1:21, h:2.6, glaze:{C:0.25}, wins:{S:[{x0:5.5,x1:6.5,sill:0.6,head:2.1},{x0:8.0,x1:9.0,sill:0.6,head:2.1}]}},
+  {id:'ensuite',  name:'En suite',               type:'bath',    lvl:1, x0:19, y0:16, x1:21, y1:21, h:2.6, glaze:{}, wins:{S:[{x0:10.0,x1:10.5,sill:1.2,head:2.0}]}},
+  {id:'study',    name:'Study (upper, +1.1 m)',  type:'office',  lvl:1, x0:21, y0:14, x1:27, y1:21, h:2.6, fz:-1.6, glaze:{N:0.2, E:0.15}, wins:{S:[]}}
+];
+const DECKS = [{x0:5, y0:-5, x1:27, y1:0}, {x0:21, y0:0, x1:27, y1:14}, {x0:0, y0:3, x1:5, y1:14, paving:true}];
+const PARKING = {x0:-2, y0:23, x1:29, y1:28};
+const DIRS = {N:[0,-1], E:[1,0], S:[0,1], W:[-1,0]};
+const DIR_VEC = {N:[0,1,0], E:[1,0,0], S:[0,-1,0], W:[-1,0,0]}; // ENU (east, north, up)
+const OPP = {N:'S', S:'N', E:'W', W:'E'};
+function bandsOf(r){
+  if((r.lvl||0)===0 && r.h > LVL1Z+0.3) return [{lvl:0, z0:0, h:LVL1Z}, {lvl:1, z0:LVL1Z, h:r.h-LVL1Z}];
+  const l = r.lvl||0; return [{lvl:l, z0:l?LVL1Z:0, h:r.h}];
+}
+function deriveGeometry(rooms){
+  const map = new Map(); const K=(l,x,y)=>l+','+x+','+y;
+  rooms.forEach((r,i)=>{ for(const b of bandsOf(r)) for(let x=r.x0;x<r.x1;x++) for(let y=r.y0;y<r.y1;y++) map.set(K(b.lvl,x,y),i); });
+  const isCourt = i => rooms[i].type==='court';
+  const edges = [];
+  const per = rooms.map(()=>({ext:{N:[],E:[],S:[],W:[]}, courtEdges:[], parts:{}, courtParts:{}, below:{}, exposedFloor:0, roofCells:0, cells:0}));
+  rooms.forEach((r,i)=>{
+    const P = per[i];
+    for(const b of bandsOf(r)){
+      for(let x=r.x0;x<r.x1;x++) for(let y=r.y0;y<r.y1;y++){
+        for(const d of ['N','E','S','W']){
+          const [dx,dy]=DIRS[d]; const n = map.get(K(b.lvl,x+dx,y+dy));
+          if(n===i) continue;
+          const e = {room:i, x, y, dir:d, nb:n, lvl:b.lvl, z0:b.z0, h:b.h};
+          if(n===undefined){ e.kind='ext'; P.ext[d].push(e); }
+          else if(isCourt(n) && !isCourt(i)){ e.kind='court'; e.court=n; P.courtEdges.push(e); }
+          else if(isCourt(i) && !isCourt(n)) continue;
+          else if(i<n){ e.kind = isCourt(i)&&isCourt(n) ? 'cc' : 'part'; (P.parts[n]=P.parts[n]||[]).push(e); }
+          else continue;
+          edges.push(e);
+        }
+      }
+    }
+    // vertical relations
+    for(let x=r.x0;x<r.x1;x++) for(let y=r.y0;y<r.y1;y++){
+      P.cells++;
+      if(isCourt(i)){ P.roofCells++; continue; }
+      const l = r.lvl||0;
+      const above = map.get(K(l+1,x,y));
+      if(above===undefined || above===i || isCourt(above)) P.roofCells++;
+      if(l===1){ const bl = map.get(K(0,x,y)); if(bl===undefined) P.exposedFloor++; else if(!isCourt(bl)) P.below[bl]=(P.below[bl]||0)+1; else P.exposedFloor++; }
+    }
+  });
+  function markGlazed(list, frac){
+    if(!list.length) return;
+    const sorted = list.slice().sort((a,b)=> a.lvl-b.lvl || ((a.dir==='N'||a.dir==='S') ? a.y-b.y || a.x-b.x : a.x-b.x || a.y-b.y));
+    const n = Math.round(frac*sorted.length); const start = Math.floor((sorted.length-n)/2);
+    sorted.forEach((e,k)=> e.glazed = k>=start && k<start+n);
+  }
+  rooms.forEach((r,i)=>{
+    for(const d of ['N','E','S','W']) for(const lv of [0,1]) markGlazed(per[i].ext[d].filter(e=>e.lvl===lv), r.glaze[d]||0);
+    for(const d of ['N','E','S','W']) markGlazed(per[i].courtEdges.filter(e=>e.dir===d), r.glaze.C||0);
+    for(const n in per[i].parts){ const l = per[i].parts[n]; if(l[0].kind==='cc') l.forEach(e=>e.glazed=true); }
+  });
+  return {map, edges, per, K};
+}
+
+/* ===================== CLIMATE & SUN ===================== */
+function outdoorT(s, h){
+  const S = SEASONS[s];
+  if(h>=6 && h<=15) return S.Tmin + (S.Tmax-S.Tmin)*(1-Math.cos(Math.PI*(h-6)/9))/2;
+  const t = h<6 ? h+24 : h;
+  return S.Tmax - (S.Tmax-S.Tmin)*(1-Math.cos(Math.PI*(t-15)/15))/2;
+}
+function sunVec(s, clockH){
+  const S = SEASONS[s];
+  const dec = 23.45*Math.sin(2*Math.PI*(284+S.doy)/365)*Math.PI/180;
+  const lat = LAT*Math.PI/180;
+  const w = 15*(clockH - S.solarShift - 12)*Math.PI/180;
+  const up = Math.sin(lat)*Math.sin(dec) + Math.cos(lat)*Math.cos(dec)*Math.cos(w);
+  const east = -Math.cos(dec)*Math.sin(w);
+  const north = Math.sin(dec)*Math.cos(lat) - Math.cos(dec)*Math.sin(lat)*Math.cos(w);
+  return [east, north, up];
+}
+const SOLAR = {}; // SOLAR[season] = {beam:[24 x vec], dni:[], dhi:[], ghi:[]}
+function prepSolar(){
+  for(const s in SEASONS){
+    const raw = []; let clearDaily=0, B=0, D=0;
+    for(let h=0;h<24;h++){
+      // average over the hour using midpoint
+      const v = sunVec(s, h+0.5); const sa = v[2];
+      let dni=0, dhi=0;
+      if(sa>0.02){ const am = 1/sa; dni = 1100*Math.pow(0.7, Math.pow(am,0.678)); dhi = 0.12*dni+20*sa; }
+      raw.push({v, dni, dhi}); B += dni*Math.max(0,sa); D += dhi;
+    }
+    clearDaily = (B+D)/1000;
+    const k = Math.min(1, SEASONS[s].ghi/clearDaily);
+    const kb = Math.pow(k,1.4); const kd = (SEASONS[s].ghi*1000 - kb*B)/D;
+    SOLAR[s] = raw.map(r=>({v:r.v, dni:r.dni*kb, dhi:r.dhi*kd, ghi:r.dni*kb*Math.max(0,r.v[2])+r.dhi*kd}));
+  }
+}
+prepSolar();
+const IRR = {}; for(const s in SEASONS){ IRR[s]=[]; for(let h=0;h<24;h++){ IRR[s][h]={}; for(const d of ['N','E','S','W']) IRR[s][h][d]=0; } }
+function prepIrr(){ for(const s in SEASONS) for(let h=0;h<24;h++) for(const d of ['N','E','S','W']) IRR[s][h][d]=irrVertical(s,h,d); }
+function irrVertical(s, h, dir){
+  const o = SOLAR[s][h]; const n = DIR_VEC[dir];
+  const cos = o.v[0]*n[0]+o.v[1]*n[1]+o.v[2]*n[2];
+  return o.dni*Math.max(0,cos) + o.dhi*0.5 + 0.2*o.ghi*0.5;
+}
+prepIrr();
+function psat(T){ return 6.112*Math.exp(17.62*T/(243.12+T)); } // hPa
+function wFromVp(vp){ return 0.622*vp/(1013-vp); }
+function rhFrom(T,w){ const vp = w*1013/(0.622+w); return Math.min(100, 100*vp/psat(T)); }
+function dewPoint(T,rh){ const g = Math.log(Math.max(rh,1)/100) + 17.62*T/(243.12+T); return 243.12*g/(17.62-g); }
+
+/* ===================== SCHEDULES ===================== */
+const inH = (h,a,b)=> a<=b ? (h>=a && h<b) : (h>=a || h<b);
+function gainsW(type,h){
+  switch(type){
+    case 'court': return inH(h,8,22)?200:0;
+    case 'living': return inH(h,18,23)?350: inH(h,7,9)?200:60;
+    case 'kitchen': return inH(h,18,20)?1200: inH(h,7,8)?500: inH(h,12,13)?300:80;
+    case 'main': return inH(h,22,7)?150:25;
+    case 'bed': case 'bedbath': return inH(h,22,7)?90:20;
+    case 'bath': return inH(h,7,8)?300:20;
+    case 'change': return inH(h,10,16)?100:20;
+    case 'office': return inH(h,9,17)?250:30;
+    case 'hall': return 10;
+    case 'rumpus': return inH(h,16,21)?150:20;
+    default: return 0;
+  }
+}
+function moistGh(type,h){ // g/h of water vapour
+  switch(type){
+    case 'living': return inH(h,18,23)?120: inH(h,7,9)?80:10;
+    case 'kitchen': return inH(h,18,20)?700: inH(h,7,8)?300: inH(h,12,13)?150:10;
+    case 'main': return inH(h,22,7)?80:5;
+    case 'bed': return inH(h,22,7)?40:5;
+    case 'bedbath': return inH(h,22,7)?40: inH(h,7,8)?600:5;
+    case 'bath': return inH(h,7,8)?900: inH(h,21,22)?300:20;
+    case 'change': return inH(h,10,16)?250:20;
+    case 'office': return inH(h,9,17)?60:5;
+    case 'hall': return 10;
+    case 'rumpus': return inH(h,9,11)?400:20;
+    case 'court': return inH(h,18,22)?150: inH(h,7,9)?80:30;
+    default: return 0;
+  }
+}
+function occupied(type,h){
+  switch(type){
+    case 'living': case 'kitchen': return inH(h,7,23);
+    case 'main': case 'bed': case 'bedbath': return inH(h,21,8);
+    case 'bath': return inH(h,7,8)||inH(h,19,22);
+    case 'office': return inH(h,9,17);
+    default: return false;
+  }
+}
+function heatSP(type,h,sys){
+  if(sys==='hvac') return 20;
+  switch(type){
+    case 'living': case 'kitchen': return (inH(h,7,9)||inH(h,17,23))?20:null;
+    case 'main': case 'bed': case 'bedbath': return (inH(h,7,8)||inH(h,20,23))?18:null;
+    case 'bath': return (inH(h,7,8)||inH(h,19,21))?20:null;
+    case 'change': return inH(h,7,9)?16:null;
+    case 'office': return inH(h,9,17)?20:null;
+    default: return null;
+  }
+}
+function coolSP(type,h,sys){
+  if(sys==='hvac') return 24;
+  if(sys==='heatpump' && (type==='living'||type==='kitchen'||type==='main'||type==='office') && inH(h,12,23)) return 25;
+  return null;
+}
+
+/* ===================== MODEL BUILDING ===================== */
+function shadeFactor(opt, dir, season, Ta, occ){
+  if(opt==='eaves'){ if(dir==='N') return season==='winter'?0.95: season==='spring'?0.65:0.4; if(dir==='E'||dir==='W') return 0.85; return 1; }
+  if(opt==='louvres'){ if(occ==='passive') return 0.6; return Ta>23 ? 0.15 : 1.0; }
+  return 1;
+}
+function winSpec(o){ return {R:WIN_R[o.glass][o.frame], shgc:SHGC[o.glass], ff:FRAME_FRAC[o.frame]}; }
+
+// Build thermal zones for the Malabar house from rooms + options
+function buildMalabar(rooms, o){
+  rooms = rooms.map(r=>{ if((r.id==='kitchen' && o.screens!=='open') || (r.id==='utility' && o.screens==='both')) return Object.assign({}, r, {open:false, glaze:Object.assign({}, r.glaze, {C:0.8})}); return r; });
+  const g = deriveGeometry(rooms);
+  const ws = winSpec(o);
+  const Uwall = 1/(o.wallR + (WRAP_R[o.structure]||0));
+  const Uroof = 1/o.roofR;
+  const zones = rooms.map((r,i)=>{
+    const P = g.per[i];
+    const A = P.cells*CELL*CELL, V = A*r.h, isC = r.type==='court';
+    const z = {id:r.id, name:r.name, type:r.type, lvl:r.lvl||0, A, V, h:r.h, heated:!isC && r.type!=='hall' && r.type!=='rumpus', wins:[], UAo:0, UAg:0, roofUA:0, roofGl:null, isCourt:isC};
+    for(const d of ['N','E','S','W']){
+      const area = P.ext[d].reduce((s,e)=>s+CELL*e.h,0); if(!area) continue;
+      const Aw = area*(r.glaze[d]||0);
+      z.UAo += (area-Aw)*Uwall; z.extOpaque=(z.extOpaque||0)+(area-Aw); z.winTot=(z.winTot||0)+Aw;
+      if(Aw>0) z.wins.push({dir:d, A:Aw, R:ws.R, shgc:ws.shgc, ff:ws.ff, ext:true});
+    }
+    const roofA = P.roofCells*CELL*CELL;
+    if(isC){
+      const Aroof = roofA*1.06, f = o.roofFrac;
+      z.roofUA = (1-f)*Aroof*Uroof; z.roofSolidA = (1-f)*Aroof;
+      if(f>0){ const R = o.roofGlass==='single'?0.16:0.40; const sh = o.roofGlass==='single'?0.78:0.50; z.roofGl = {A:f*Aroof, R, shgc:sh, ff:0.12, shade:o.roofGlass==='loweShade'}; }
+      const fl = o.courtFloor;
+      z.Cm = A*(fl==='deck'?25e3:200e3); z.abs = fl==='deck'?0.55: fl==='tile'?0.45:0.85;
+      z.UAg = A*(fl==='deck'?1.2:1.0);
+    } else {
+      z.roofUA = roofA*Uroof;
+      if(z.lvl===0){ z.Cm = A*120e3; z.UAg = A/o.floorR; } else { z.Cm = A*30e3; z.UAo += P.exposedFloor*CELL*CELL*Uwall; }
+      z.abs = 0.6;
+    }
+    z.roofA = roofA;
+    z.Ca = V*1200 + A*15e3; z.Hm = 5*A;
+    // A retrofit cannot reach Passive House airtightness (timber frame, steel-and-glass courtyard): MVHR case assumes ~3 ach50 (~0.25 ach natural).
+    z.inf = o.airtight==='leaky'?1.0: o.airtight==='sealed'?0.45:0.25;
+    if(isC && o.airtight==='leaky') z.inf = 1.3;
+    z.mvhr = o.airtight==='mvhr';
+    z.courtGlaz = {}; // per court index: glazed area of edges facing that court from the south side
+    return z;
+  });
+  const links = [];
+  rooms.forEach((r,i)=>{
+    const P = g.per[i];
+    for(const nb in P.parts){
+      const list = P.parts[nb]; const area = list.reduce((s,e)=>s+CELL*e.h,0);
+      if(list[0].kind==='cc') links.push({a:i, b:+nb, UA:area/ws.R, qClosed:40, qOpen:400, door:true, glazA:area});
+      else links.push({a:i, b:+nb, UA:2.0*area, qClosed:20, qOpen:120, door:false});
+    }
+    const byCourt = {};
+    for(const e of P.courtEdges){ (byCourt[e.court]=byCourt[e.court]||{area:0, south:0}); byCourt[e.court].area += CELL*e.h; if(e.dir==='N') byCourt[e.court].south += CELL*e.h; }
+    for(const c in byCourt){
+      const area = byCourt[c].area, Ag = area*(r.glaze.C||0);
+      if(r.open){ links.push({a:i, b:+c, UA:6*area, qClosed:900, qOpen:1500, door:false, glazA:0}); continue; }
+      links.push({a:i, b:+c, UA:Ag/ws.R + (area-Ag)*2.0, qClosed:25, qOpen:450*(r.glaze.C||0)*Math.min(1,area/8), door:true, glazA:Ag});
+      if(byCourt[c].south>0) zones[i].courtGlaz[c] = byCourt[c].south*(r.glaze.C||0);
+    }
+    for(const bl in P.below){ links.push({a:i, b:+bl, UA:1.2*P.below[bl]*CELL*CELL, qClosed:0, qOpen:0, door:false}); }
+  });
+  const courts = zones.map((z,i)=>i).filter(i=>zones[i].isCourt).map(ci=>{
+    const south = zones.map((z,i)=>i).filter(i=>zones[i].courtGlaz[ci]>0);
+    return {ci, south, tot: south.reduce((s,i)=>s+zones[i].courtGlaz[ci],0)};
+  });
+  return {zones, links, courts, opts:o, geo:g};
+}
+
+// Generic two-storey reference house (1990s standard / 2026 code minimum)
+function buildReference(kind, areaTarget){
+  const SC = areaTarget ? areaTarget/150 : 1, L = Math.sqrt(SC);
+  const o = kind==='1990'
+    ? {wallR:1.5, roofR:1.9, floorR:1.3, win:{R:0.15, shgc:0.78, ff:0.23}, inf:0.7, fans:'none', curtains:'standard', shading:'eaves', heating:'heaters', occupants:'dynamic', airtight:'leaky', vents:'none', pv:0}
+    : {wallR:2.0, roofR:6.6, floorR:1.5, win:{R:0.46, shgc:0.50, ff:0.27}, inf:0.4, fans:'extract', curtains:'standard', shading:'eaves', heating:'heaters', occupants:'dynamic', airtight:'sealed', vents:'none', pv:0};
+  const Uw = 1/o.wallR;
+  const spec = [
+    {id:'gl', name:'Living', type:'living', A:37.5*SC, h:2.4, sides:{N:10*L, E:3.75*L, W:3.75*L}, glaze:{N:0.35,E:0.2,W:0.2}, ground:true, roof:false},
+    {id:'gk', name:'Kitchen & family', type:'kitchen', A:37.5*SC, h:2.4, sides:{S:10*L, E:3.75*L, W:3.75*L}, glaze:{S:0.15,E:0.15,W:0.15}, ground:true, roof:false},
+    {id:'f1', name:'Main bedroom', type:'main', A:18.75*SC, h:2.4, sides:{N:5*L, W:3.75*L}, glaze:{N:0.3,W:0.15}, ground:false, roof:true},
+    {id:'f2', name:'Bedroom 2', type:'bed', A:18.75*SC, h:2.4, sides:{N:5*L, E:3.75*L}, glaze:{N:0.3,E:0.15}, ground:false, roof:true},
+    {id:'f3', name:'Bed 3 & bathroom', type:'bedbath', A:37.5*SC, h:2.4, sides:{S:10*L, E:3.75*L, W:3.75*L}, glaze:{S:0.12,E:0.1,W:0.1}, ground:false, roof:true}
+  ];
+  const zones = spec.map(s=>{
+    const z = {id:s.id, name:s.name, type:s.type, A:s.A, V:s.A*s.h, h:s.h, heated:true, wins:[], UAo:0, UAg:0, roofUA:0, roofGl:null};
+    for(const d in s.sides){ const area = s.sides[d]*s.h; const Aw = area*(s.glaze[d]||0); z.UAo += (area-Aw)*Uw; if(Aw>0) z.wins.push({dir:d, A:Aw, R:o.win.R, shgc:o.win.shgc, ff:o.win.ff, ext:true}); }
+    if(s.roof) z.roofUA = s.A/o.roofR;
+    if(s.ground){ z.UAg = s.A/o.floorR; z.Cm = s.A*120e3; } else { z.Cm = s.A*30e3; }
+    z.abs = 0.6; z.Ca = z.V*1200 + s.A*15e3; z.Hm = 5*s.A; z.inf = o.inf; z.mvhr=false;
+    return z;
+  });
+  const links = [
+    {a:0,b:1,UA:(2.0*10*2.4)*L,qClosed:30,qOpen:200,door:false},
+    {a:2,b:3,UA:(2.0*3.75*2.4)*L,qClosed:20,qOpen:100,door:false},
+    {a:2,b:4,UA:(2.0*5*2.4)*L,qClosed:20,qOpen:100,door:false},
+    {a:3,b:4,UA:(2.0*5*2.4)*L,qClosed:20,qOpen:100,door:false},
+    {a:0,b:2,UA:(1.2*18.75)*SC,qClosed:5,qOpen:5,door:false},{a:0,b:3,UA:(1.2*18.75)*SC,qClosed:5,qOpen:5,door:false},
+    {a:1,b:4,UA:(1.2*37.5)*SC,qClosed:60,qOpen:60,door:false}
+  ];
+  return {zones, links, courts:[], opts:Object.assign({frame:'alu',glass:'single',roofGlass:'single',courtFloor:'deck',structure:'timber'},o), ref:true};
+}
+
+/* ===================== SIMULATION ===================== */
+function simulate(model, season, mode){
+  const conditioned = mode!=='free';
+  const o = model.opts, Z = model.zones, L = model.links, S = SEASONS[season];
+  const n = Z.length, dt = 120, days = 3, steps = 86400/dt;
+  const Ta = new Float64Array(n), Tm = new Float64Array(n), W = new Float64Array(n);
+  const wout = wFromVp(S.vp);
+  const mean = (S.Tmin+S.Tmax)/2 + 2;
+  for(let i=0;i<n;i++){ Ta[i]=mean; Tm[i]=mean; W[i]=wout*1.2; }
+  const sys = mode==='std' ? 'heatpump' : o.heating;
+  const out = {T:Z.map(()=>new Array(24).fill(0)), RH:Z.map(()=>new Array(24).fill(0)), heat:0, cool:0, hot:0, cold:0, cond:[], mould:[], solarGain:0, curtainsClosed:[]};
+  const dyn = o.occupants==='dynamic' && sys!=='hvac';
+  const curtR = o.curtains==='thermal'?0.25:0.10;
+  const TaN = new Float64Array(n), TmN = new Float64Array(n), WN = new Float64Array(n);
+  const lq = new Float64Array(n), lm = new Float64Array(n), ventAch = new Float64Array(n), linkQ = new Float64Array(L.length), solA = new Float64Array(n), solM = new Float64Array(n), curtOn = new Uint8Array(n);
+  for(let d=0; d<days; d++){
+    const last = d===days-1;
+    for(let st=0; st<steps; st++){
+      const t = st*dt/3600, h = Math.floor(t);
+      const To = outdoorT(season, t), sol = SOLAR[season][h];
+      // --- behaviour & ventilation decisions
+      for(let i=0;i<n;i++){
+        const z = Z[i];
+        let ach = z.inf + (z.mvhr ? 0.35*(1-0.7) : 0); // in-use heat recovery ~70%
+        if(z.isCourt){
+          const v = o.vents, k = Math.sqrt(z.h/3.9);
+          if(v==='auto' || v==='autoNight'){ if(Ta[i]>24 && To<Ta[i]) ach += 10*k; }
+          if(v==='autoNight' && season!=='winter' && inH(h,22,7) && Ta[i]>19 && To<Ta[i]-2) ach += 10*k;
+          if(v==='manual' && dyn && inH(h,8,22) && Ta[i]>26 && To<Ta[i]) ach += 6*k;
+          if(dyn && Ta[i]>25 && To<Ta[i]-1 && inH(h,8,21)) ach += 2; // open end doors
+        } else if(dyn && Ta[i]>24 && To<Ta[i]-1 && (inH(h,7,23) || z.type==='main' || z.type==='bed')){ ach += 4; }
+        if(o.fans==='extract' && ((z.type==='kitchen' && inH(h,18,20)) || ((z.type==='bath'||z.type==='bedbath') && inH(h,7,8)))) ach += 3;
+        ventAch[i] = ach;
+        curtOn[i] = (o.occupants==='dynamic' && season!=='summer' && inH(h,17,7)) ? 1 : 0;
+      }
+      for(let k=0;k<L.length;k++){
+        const l = L[k]; let q = l.qClosed;
+        if(l.door && dyn && inH(h,8,21)){
+          const ta = Ta[l.a], tb = Ta[l.b];
+          if((tb>ta+0.5 && ta<22) || (ta>24 && tb<ta-0.5)) q = l.qOpen;
+        } else if(!l.door && dyn) q = (l.qOpen+l.qClosed)/2;
+        linkQ[k] = q/3600; // m3/s
+      }
+      // --- solar gains
+      for(let i=0;i<n;i++){ solA[i]=0; solM[i]=0; }
+      for(let i=0;i<n;i++){
+        const z = Z[i];
+        for(const w of z.wins){
+          const I = IRR[season][h][w.dir];
+          const f = shadeFactor(o.shading, w.dir, season, Ta[i], o.occupants);
+          const q = w.A*(1-w.ff)*w.shgc*I*(z.isCourt?1:f);
+          solA[i] += 0.4*q; solM[i] += 0.6*q;
+        }
+        if(z.roofGl){
+          let sf = 1; if(z.roofGl.shade) sf = season==='summer'?0.35: season==='spring'?0.6:0.9;
+          const q = z.roofGl.A*(1-z.roofGl.ff)*z.roofGl.shgc*sol.ghi*sf;
+          const C = model.courts.find(c=>c.ci===i);
+          const trF = (season==='winter'?0.30: season==='spring'?0.20:0.10);
+          const tr = C && C.tot>0 ? Math.min(q*0.45, q*trF*1.6*Math.min(1, C.tot/(C.tot+15))) : 0;
+          if(tr>0) for(const j of C.south){ const share = Z[j].courtGlaz[i]/C.tot; solA[j]+=0.4*tr*share; solM[j]+=0.6*tr*share; }
+          const rest = q-tr;
+          solM[i] += rest*z.abs; solA[i] += rest*(1-z.abs);
+        }
+        if(z.roofUA) solA[i] += z.roofUA*0.65*sol.ghi*0.04;
+      }
+      // --- heat balance (explicit)
+      lq.fill(0); lm.fill(0);
+      for(let k=0;k<L.length;k++){ const l=L[k], a=l.a, b=l.b; const G=(l.UA+1200*linkQ[k])*(Ta[b]-Ta[a]); const M=1.2*linkQ[k]*(W[b]-W[a]); lq[a]+=G; lq[b]-=G; lm[a]+=M; lm[b]-=M; }
+      for(let i=0;i<n;i++){
+        const z = Z[i];
+        let Hw = 0; for(const w of z.wins){ Hw += w.A/(w.R + (curtOn[i]?curtR:0)); }
+        if(z.roofGl) Hw += z.roofGl.A/z.roofGl.R;
+        const Hv = 1200*ventAch[i]*z.V/3600;
+        let q = (z.UAo + z.roofUA + Hw + Hv)*(To-Ta[i]) + z.Hm*(Tm[i]-Ta[i]) + gainsW(z.type,h) + solA[i];
+        let mw = moistGh(z.type,h)/3.6e6 + 1.2*((ventAch[i]+(z.mvhr?0.28:0))*z.V/3600)*(wout-W[i]);
+        q += lq[i]; mw += lm[i];
+        TaN[i] = Ta[i] + dt*q/z.Ca;
+        TmN[i] = Tm[i] + dt*(z.Hm*(Ta[i]-Tm[i]) + z.UAg*(S.Tg-Tm[i]) + solM[i])/z.Cm;
+        WN[i] = Math.max(0.001, W[i] + dt*mw/(1.2*z.V*8));
+        if(conditioned){
+          const strat = Math.max(0, z.h-2.7)*0.4;
+          const hs = (z.heated || sys==='hvac') ? heatSP(z.type, h, sys) : null;
+          const cs = (z.heated || sys==='hvac') ? coolSP(z.type, h, sys) : null;
+          if(hs!==null && TaN[i] < hs+strat){ const e = z.Ca*(hs+strat-TaN[i]); TaN[i]=hs+strat; if(last) out.heat += e; }
+          if(cs!==null && TaN[i] > cs){ const e = z.Ca*(TaN[i]-cs); TaN[i]=cs; if(last) out.cool += e; }
+        }
+      }
+      for(let i=0;i<n;i++){ Ta[i]=TaN[i]; Tm[i]=TmN[i]; W[i]=WN[i]; }
+      if(last && (st*dt)%3600===0){
+        for(let i=0;i<n;i++){ out.T[i][h]=Ta[i]; out.RH[i][h]=rhFrom(Ta[i],W[i]); }
+        // comfort counting
+        for(let i=0;i<n;i++){ const z=Z[i]; if(!(z.heated||z.isCourt) || !occupied(z.isCourt?'living':z.type,h)) continue; if(Ta[i]>26) out.hot++; if(Ta[i]<16) out.cold++; }
+        if(h===7){
+          for(let i=0;i<n;i++){
+            const z=Z[i], rh = rhFrom(Ta[i],W[i]), dp = dewPoint(Ta[i], rh);
+            let risk = false;
+            const glassList = z.wins.map(w=>w.R).concat(z.roofGl?[z.roofGl.R]:[]);
+            for(let k=0;k<L.length;k++){ const l=L[k]; if(l.door && (l.a===i) && l.glazA>0){ /* internal sliding doors face courtyard */ } }
+            for(const R of glassList){
+              let Tin = Ta[i]; if(curtOn[i] && !z.isCourt) Tin = Ta[i] - (Ta[i]-To)*(curtR/(curtR+R));
+              const Tsi = Tin - (Tin-To)*0.13/R; if(Tsi < dp) risk = true;
+            }
+            if(risk) out.cond.push(i);
+            if(rh>80 && z.type!=='court') out.mould.push(i);
+          }
+        }
+      }
+    }
+  }
+  out.heat/=3.6e6; out.cool/=3.6e6; // kWh per day (thermal)
+  return out;
+}
+
+function evaluate(model){
+  const o = model.opts; const res = {season:{}};
+  let heat=0, cool=0, hot=0, cold=0;
+  let aHeat=0, aCool=0;
+  for(const s in SEASONS){
+    const free = simulate(model, s, 'free'), std = simulate(model, s, 'std'), cond = simulate(model, s, 'actual');
+    res.season[s] = {free, std, cond};
+    heat += std.heat*SEASONS[s].days; cool += std.cool*SEASONS[s].days;
+    aHeat += cond.heat*SEASONS[s].days; aCool += cond.cool*SEASONS[s].days;
+    hot += free.hot*SEASONS[s].days; cold += cond.cold*SEASONS[s].days; // overheating judged free-running (no mechanical cooling), as in naturally ventilated overheating assessments
+  }
+  const Z = model.zones;
+  const heatedA = Z.filter(z=>z.heated).reduce((s,z)=>s+z.A,0);
+  const sys = o.heating;
+  let elec = sys==='heaters' ? aHeat : sys==='heatpump' ? (aHeat+aCool)/CONFIG.hpCOP : (aHeat+aCool)*1.15/CONFIG.hpCOP + 0.12*8760;
+  if(o.airtight==='mvhr') elec += 0.04*8760;
+  const pvGen = (o.pv||0)*(90*4.8+183*3.8+92*1.8);
+  const cost = elec*CONFIG.elecPrice;
+  const pvSave = pvGen*(0.4*CONFIG.elecPrice + 0.6*CONFIG.exportPrice);
+  const w = res.season.winter.cond;
+  const condRooms = w.cond.map(i=>Z[i].name);
+  const condHab = w.cond.filter(i=>Z[i].heated && Z[i].type!=='change').map(i=>Z[i].name);
+  Object.assign(res, {heat, cool, aHeat, aCool, demand:heat+cool, demandM2:(heat+cool+(o.airtight==='mvhr'?0.04*8760:0))/heatedA, fanM2:(o.airtight==='mvhr'?0.04*8760:0)/heatedA, heatedA, elec, cost, pvGen, pvSave, netCost:cost-pvSave,
+    carbon:elec*CONFIG.gridEF, pvCarbon:pvGen*CONFIG.gridEF, hot:Math.round(hot), cold:Math.round(cold), condRooms, condHab,
+    mouldRooms:w.mould.map(i=>Z[i].name)});
+  return res;
+}
+
+// Explicit windows (wins) set the glazed fraction used by the thermal model for that wall.
+(function initWindowGlaze(){ const g = deriveGeometry(BASE_ROOMS);
+  BASE_ROOMS.forEach((r,i)=>{ if(!r.wins) return; for(const d in r.wins){ const L = g.per[i].ext[d].filter(e=>e.lvl===(r.lvl||0)).length*CELL; if(!L) continue;
+    const A = r.wins[d].reduce((s,w)=>s+(w.x1-w.x0)*(w.head-w.sill),0); r.glaze[d] = Math.round(1000*A/(L*r.h))/1000; } }); })();
+/* ===================== FIELD GUIDE CONTENT ===================== */
+const GUIDE = {
+  occupants:{t:'Dynamic or passive occupants?', b:`<p>Cook rejected the idea of a sealed house that runs itself: "We are not passive. We are dynamic. Buildings should be dynamic." His houses expect people to open and close sliding doors, move between warmer and cooler spaces, draw curtains and put on a jersey.</p>
+<p>This is close to what comfort researchers call the <b>adaptive comfort</b> model (de Dear &amp; Brager, 1998): in naturally ventilated buildings, people accept a wider range of temperatures when they can control their surroundings.</p>
+<p><b>Try it:</b> switch to "set-and-forget" and watch the summer overheating and winter condensation. Then ask: is it fair to design a house that only works if people behave a certain way?</p>`},
+  bridging:{t:'Thermal bridging and the frame', b:`<p>Malabar Drive is a <b>timber-framed</b> house. Steel is used only for the glazed courtyard, where it carries the span and the weight of the glass roof.</p>
+<p>Insulation only works if heat cannot sneak around it. In a timber wall the studs interrupt the insulation (about 15–20% of the wall), so the wall performs worse than the batts alone. Steel and aluminium are far worse: aluminium conducts heat over 1,000 times better than timber, so the courtyard's steel frame and the aluminium joinery act as <b>thermal bridges</b> and are often where condensation appears first.</p>
+<p>A continuous layer of insulation wrapped round the outside of the frame (with new cladding over it) stops the studs bridging. It is effective but disruptive and costly, because the existing cladding has to come off.</p>
+<p>Cook: "It's loony that we are using steel and concrete in New Zealand when we have so much timber." Here he uses timber for the house and steel only where the glass roof needs it.</p>`},
+  rvalue:{t:'R-values and U-values', b:`<p>An <b>R-value</b> measures resistance to heat flow (m²K/W): higher is better. A <b>U-value</b> is its inverse (W/m²K): the watts lost through each square metre for every degree of temperature difference. Lower is better.</p>
+<p>The 2026 New Zealand Building Code schedule method for Auckland (climate zone 1) asks for roofs R6.6, walls R2.0, slab floors R1.5 and windows R0.46 (H1/AS1, 5th edition). A typical 1990s house was built to much lower minimums.</p>
+<p>Doubling insulation does not halve heat loss for the whole house: windows, air leakage and thermal bridges soon dominate. Watch for diminishing returns.</p>`},
+  mass:{t:'Thermal mass', b:`<p>Heavy materials (concrete, tile, masonry) soak up heat slowly and release it slowly. Put sunlight on a dark, heavy floor and it stores the day's warmth into the evening while flattening daytime peaks.</p>
+<p>A light timber deck under a glass roof does the opposite: the air heats fast and cools fast. That is one reason a glass courtyard can swing from cold mornings to baking afternoons.</p>
+<p>Mass only helps if it is <b>insulated from the outside</b> and can <b>see the sun</b> (or the night air, in summer). An uninsulated slab leaks heat to the ground all winter.</p>`},
+  airtight:{t:'Airtightness, ventilation and MVHR', b:`<p>Air leaking through gaps carries heat and moisture with it. Sealing the gaps cuts heat loss, but people still need fresh air, and the moisture from cooking, showers and breathing has to go somewhere. Sealing without extract fans can make condensation worse.</p>
+<p><b>MVHR</b> (mechanical ventilation with heat recovery) supplies fresh air continuously through a heat exchanger. It is one of the five Passive House principles and works well in very airtight new buildings, including in New Zealand.</p>
+<p>In this retrofit it is poor value. A 1990s timber house with a steel-and-glass courtyard cannot realistically be made airtight enough, real systems recover only about 70% of the heat, Auckland's mild winters leave little heat to recover, and the fans run all year (counted in the energy figure). A standard heat-recovery unit also does not dry Auckland's humid summer air. Opening the windows, as Cook intended, bypasses it altogether.</p>`},
+  frames:{t:'Window frames', b:`<p>Frames are 20–40% of a window's area, so they matter. Plain aluminium conducts heat very well. BRANZ figures for the same double glazing range from R0.26 in plain aluminium to R0.32 thermally broken aluminium, R0.40 uPVC and R0.44 timber.</p>
+<p>Cold frames also cause condensation, which ran down and rotted many 1990s window reveals.</p>
+<p>Trade-offs: timber needs maintenance but stores carbon; uPVC is plastic; aluminium is durable and recyclable but energy-intensive to make.</p>`},
+  glazing:{t:'Glazing and solar gain', b:`<p>Single glazing loses heat about four times faster than good double glazing. Its inner surface also sits close to outdoor temperature on cold nights, so moisture in the room condenses on it.</p>
+<p><b>SHGC</b> (solar heat gain coefficient) is the share of sunshine that gets through as heat. Low-E coatings reduce heat loss but also cut solar gain, which helps in summer and hurts slightly in winter.</p>
+<p>More glass is not automatically better. North glass gains useful winter sun; east and west glass overheats on summer mornings and afternoons.</p>`},
+  curtains:{t:'Curtains', b:`<p>Closed curtains add a layer of still air over the glass at night. Thermal lining adds more. But there is a catch: the glass behind the curtain gets <b>colder</b>, so condensation can get worse on single glazing.</p>
+<p>Curtains only work if someone closes them: try "set-and-forget" occupants.</p>`},
+  shading:{t:'External shading', b:`<p>Shading is far more effective <b>outside</b> the glass than inside: once sunlight is through the glass, the heat is already in the room.</p>
+<p><b>Fixed eaves</b> on north walls block the high summer sun but let the low winter sun in. They do little for east and west windows, where the sun is low. <b>Adjustable louvres</b> work on any side, but only if someone adjusts them (or a motor does).</p>`},
+  roofglass:{t:'The glazed courtyard roof', b:`<p>The glass roof is the heart of Cook's "wind-rain" idea: a sheltered in-between zone that lets winter sun into the house, giving rooms "two north sides".</p>
+<p>It is also the biggest heat-loss surface in the house and a source of overheating and condensation. Double low-E glass reduces both; a retractable shade tackles summer sun; a solid roof solves the physics but removes the idea.</p>
+<p>Ask: is the courtyard a design flaw, or a good idea built with the wrong materials ("everything lies in the application")?</p>`},
+  zoning:{t:'Zoning: open or screened?', b:`<p>As built, the kitchen and the utility open straight into the glass-roofed courtyard, so they share its air. In winter the heat you put into the kitchen drifts up and out through the glass roof; in summer the courtyard's heat pours into the kitchen.</p><p>A glazed screen (sliding doors) lets you close a heated room off from the courtyard when it is too hot or cold, and open it when the courtyard is pleasant. That is Cook's idea of graded zones, from open to enclosed, but with a door you can shut. It costs money and carbon, and it changes how the house feels.</p>`},
+  vents:{t:'Stack ventilation', b:`<p>Warm air rises. High vents in a tall space let hot air escape at the top while cooler air is drawn in lower down: the <b>stack effect</b>. Taller spaces drive stronger flows.</p>
+<p>Malabar Drive's roof vents open automatically on sensors (and close in rain). A <b>night purge</b> opens them on summer nights to flush heat out of the structure, so heavy floors start the next day cool.</p>`},
+  moisture:{t:'Moisture, condensation and mould', b:`<p>A household produces several litres of water vapour a day from breathing, cooking, showers and drying clothes. If that moist air meets a surface below its <b>dew point</b>, water condenses. Persistent dampness above about 80% relative humidity leads to mould and health problems.</p>
+<p>Extract fans remove moisture where it's made. Warmer glass surfaces (better glazing) and steadier heating also help.</p>
+<p>Cook blamed the 1990s leaky homes crisis on cladding materials from dry climates used in a wet one. The official inquiries (e.g. the Hunn report, 2002) found several causes together: face-sealed cladding without drainage cavities, untreated framing timber, complex designs, poor workmanship and changes to regulation.</p>`},
+  heating:{t:'Heating and cooling systems', b:`<p>Electric heaters turn 1 kWh of electricity into 1 kWh of heat. A heat pump moves heat rather than making it: EECA says the average heat pump in New Zealand puts out about three times more heat than the electricity it uses. Heat pumps can also cool.</p>
+<p>New Zealand's grid is mostly renewable, so electric heating is relatively low-carbon here. The question is less "which machine?" and more "why does the house need it?" Heat pumps cut the <b>bill</b>, but they do not change how the <b>building</b> performs, and the tasks test the building: energy demand, condensation, and overheating with no air conditioning.</p>
+<p><b>Ducted whole-house HVAC</b> conditions every space, all the time, with windows shut. In a house with a big glass courtyard, that means cooling a greenhouse. It also adds refrigerant (a powerful greenhouse gas if it leaks), fan energy and dependence on machinery: the opposite of Cook's "dynamic" house.</p>`},
+  pv:{t:'Rooftop solar', b:`<p>Panels generate electricity (about 1,300 kWh per kW installed per year in Auckland in this model). They reduce the bill, especially if you use the power yourself rather than exporting it cheaply.</p>
+<p>On New Zealand's mostly renewable grid, the carbon saved is modest compared with countries that burn coal. Solar <b>offsets</b> energy use; it doesn't change how the building performs. A cold, damp house with solar panels is still cold and damp.</p>`}
+};
+const EXTRA_GUIDE = [
+  {t:'Operational vs embodied carbon', b:`<p><b>Operational carbon</b> comes from running the building (heating, cooling, fans). <b>Embodied carbon</b> is emitted making, transporting and installing materials, before the building is used at all.</p><p>On New Zealand's relatively clean grid, operational savings are small in carbon terms, so the embodied carbon of a retrofit can take decades to pay back. Check the "carbon payback" in your scorecard.</p>`},
+  {t:'The two benchmark houses', b:`<p><b>1990s standard house:</b> two storeys, timber frame, corrugated roof, similar floor area, single glazing in aluminium, roof R1.9, walls R1.5, floor R1.3, eaves, draughty.</p><p><b>2026 code-minimum house:</b> the same house built to today's Building Code H1 schedule values for Auckland: roof R6.6, walls R2.0, slab R1.5, windows R0.46, better airtightness and extract fans.</p><p>Both are run through the same model as your design, with the same schedules and weather.</p>`},
+  {t:'Energy demand (kWh/m²/yr)', b:`<p>The heat that has to be added or removed to keep rooms comfortable during the hours they are used: heating to 18–20°C, and cooling living spaces and the main bedroom to 25°C. It is calculated the same way for every design, whatever system you choose, so it measures the <b>building</b>, not the machine. That is broadly how the Building Code's calculation method compares a design with a reference building.</p>`},
+  {t:'Passive House: what it actually is', b:`<p>Passive House (Passivhaus) is a German performance standard developed in the 1990s. It limits space-heating demand to about 15 kWh/m² per year using thick insulation, high-performance windows, no thermal bridges, airtightness and MVHR.</p><p>Cook called it "a denial of everything we're discovering about human beings". Its supporters would reply that it delivers stable comfort with tiny energy bills, and that windows can still be opened. Who is right for Auckland's mild, humid climate? Test both approaches here.</p>`},
+  {t:'About this model', b:`<p>Each room is simulated hour by hour as two linked "nodes" (the air and the floor mass) on typical Auckland days for winter, spring/autumn and summer, then scaled to a year. It includes conduction, ventilation, sun position and solar gain, thermal mass, internal gains, moisture and condensation on glass.</p><p>The layout is simplified to a 0.5 m grid from Nigel Cook Architects' permit drawings (1994). Split levels, the curved south wall and the vaulted roofs are simplified; insulation levels and some window sizes are assumptions, as are many other inputs. Treat results as <b>indicative</b>: good for comparing options, not for predicting real bills.</p><p>Sources: electricity price 39.3c/kWh (MBIE Quarterly Survey of Domestic Electricity Prices, Nov 2025); grid emissions 0.079 kg CO₂e/kWh plus losses (Ministry for the Environment, 2025); heat pump output about 3× input (EECA); Building Code values (H1/AS1 5th ed.); window R-values (BRANZ House Insulation Guide). Retrofit costs and embodied carbon are <b>rough classroom estimates</b> for comparison only. Re-glazing existing aluminium frames is priced at about $450/m² (published New Zealand retrofit quotes). Roof and wall insulation assume linings or roofing have to come off, because the curved roofs have no roof space and the walls are already lined.</p>`}
+];
+const COOK_QUOTES = [
+  ['A house was simply a contained volume of air. I made it safe, I made it warm, I made it dry, I made it private.', 'On what a house is'],
+  ['In the wintertime, what I was thinking about with the house was wrapping it in an overcoat.', 'Houses and clothing'],
+  ['It didn\'t matter which way they faced. They always had two north sides.', 'On the glazed courtyard'],
+  ['We are not passive. We are dynamic. Buildings should be dynamic.', 'On Passive House'],
+  ['The application: everything lies in the application.', 'On whether his ideas still hold'],
+  ['We\'re not Californians or Australians or Europeans. We are here.', 'On regional identity'],
+  ['It\'s loony that we are using steel and concrete in New Zealand when we have so much timber.', 'On materials'],
+  ['Leaky homes… we were using building materials that came from a dry, warm climate in what is a wet, warm climate.', 'On the leaky homes crisis'],
+  ['How to put up a good building: one that was fit for the purpose, one that was enjoyed by people, one that didn\'t offend the rest of the city.', 'On what students should learn'],
+  ['I believe very strongly that they\'re out of date, that we can do much better with materials.', 'On his own houses today']
+];
+
+/* ===================== COMPLETION CODES ===================== */
+const WORDS = ['KAURI','RIMU','TOTARA','MATAI','MIRO','TAWA','HINAU','PURIRI','KARAKA','TITOKI','NIKAU','PONGA','MAMAKU','KOWHAI','RATA','MANUKA','KANUKA','HARAKEKE','KAWAKAWA','RAUPO','TUI','KERERU','KEA','KAKA','TIEKE','RURU','WEKA','TAKAHE','KOKAKO','PUKEKO','KIWI','HIHI','TITI','KARORO','KOTUKU','MATUKU','PIPIWHARAUROA','KAKARIKI','TOROA','KORORA','PAUA','KINA','PIPI','TUATARA','WETA','MOKO','TAINUI','ARAHURA','AORAKI','RUAPEHU'];
+function fnv(str){ let h = 0x811c9dc5; for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193)>>>0; }
+  h ^= h>>>16; h = Math.imul(h,0x85ebca6b); h ^= h>>>13; h = Math.imul(h,0xc2b2ae35); h ^= h>>>16; return h>>>0; }
+function normId(id){ return String(id||'').trim().toUpperCase().replace(/\s+/g,''); }
+// 50 x 49 x 900 = 2,205,000 possible codes, chosen by two independent hashes of (student ID, task, salt).
+function codeFor(id, task){ const k = normId(id)+'|T'+task+'|'+CONFIG.salt; const a = fnv(k), b = fnv('x|'+k+'|y');
+  let w2 = b%50; if(w2===a%50) w2 = (w2+1)%50; return WORDS[a%50]+'-'+WORDS[w2]+'-'+(100 + ((Math.floor(a/50)^b)>>>0)%900); }
+/* ===================== STATE ===================== */
+const $ = s=>document.querySelector(s);
+const clone = o=>JSON.parse(JSON.stringify(o));
+const S = {rooms:clone(BASE_ROOMS), opts:clone(ORIGINAL_OPTS), rot:0, view:'cutaway', floor:'ground', season:'winter', hour:13, mode:'free', sel:null,
+  student:{name:'', id:''}, done:{1:null, 2:null}, refl:{1:'', 2:''}, play:'task', taskSave:null, sandSave:null};
+const HIST = [];
+let MODEL=null, R=null, R0=null, R90=null, R26=null, BASEMODEL=null, PREV=null;
+const HOURS = [1,7,13,19];
+const fmt = (n,d=0)=> (n===null||n===undefined||!isFinite(n)) ? '—' : Number(n).toLocaleString('en-NZ',{minimumFractionDigits:d, maximumFractionDigits:d});
+const money = n=> '$'+fmt(n);
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.style.display='block'; clearTimeout(toast._t); toast._t=setTimeout(()=>t.style.display='none', 2600); }
+function storeKey(){ return 'retrofit-malabar-v1:'+normId(S.student.id); }
+function save(){ try{ const t = S.play==='sandbox' ? S.taskSave : {opts:S.opts}; localStorage.setItem(storeKey(), JSON.stringify({rooms:BASE_ROOMS, opts:t.opts, done:S.done, refl:S.refl, name:S.student.name})); }catch(e){} }
+function load(){ try{ const d = JSON.parse(localStorage.getItem(storeKey())||'null'); if(d && d.rooms && d.rooms.length===BASE_ROOMS.length){ S.rooms=clone(BASE_ROOMS); S.opts=Object.assign(clone(ORIGINAL_OPTS), d.opts); S.done=d.done||S.done; S.refl=d.refl||S.refl; return true; } }catch(e){} return false; }
+function pushHist(){ HIST.push(JSON.stringify({rooms:S.rooms, opts:S.opts})); if(HIST.length>60) HIST.shift(); }
+
+/* ===================== QUANTITIES, COST, EMBODIED CARBON ===================== */
+function quantities(model){
+  const Z = model.zones; let winA=0, wallA=0, roofA=0, floorA=0, courtA=0, courtRoofA=0, intGlaz=0, wingWinA=0;
+  Z.forEach(z=>{ winA += z.winTot||0; wallA += z.extOpaque||0;
+    if(z.isCourt){ courtA += z.A; courtRoofA += z.roofA*1.06; roofA += z.roofSolidA||0; } else { roofA += z.roofA; if(z.lvl===0) floorA += z.A; wingWinA += z.winTot||0; } });
+  model.links.forEach(l=>{ if(l.glazA) intGlaz += l.glazA; });
+  return {winA:winA+intGlaz, wingWinA, wallA, roofA, floorA, courtA, courtRoofA};
+}
+// Area of the openings between the courtyard and the kitchen (and utility), from the as-built geometry.
+function screenArea(mode){ const g = BASEMODEL.geo; let a = 0;
+  BASE_ROOMS.forEach((r,i)=>{ if(r.id==='kitchen' || (mode==='both' && r.id==='utility')) a += g.per[i].courtEdges.filter(e=>e.lvl===0).reduce((s,e)=>s+CELL*Math.min(e.h,2.7),0); });
+  return a; }
+function costing(model){
+  const o = model.opts, q = quantities(model), items = [];
+  const add = (label, cost, ec, note)=>{ if(cost||ec) items.push({label, cost, ec, note}); };
+  const WALL = {2:[120,7], 2.8:[170,10], 3.6:[220,14]};
+  if(WALL[o.wallR]) add('Wall insulation R'+o.wallR+' (remove & replace linings)', WALL[o.wallR][0]*q.wallA, WALL[o.wallR][1]*q.wallA);
+  if(o.structure==='wrap') add('External insulation + new cladding', 350*q.wallA, 30*q.wallA);
+  // Curved (skillion-type) roofs have no roof space: R2.9-R4 = batten and re-line the ceiling; R6.6+ = lift roofing, insulate, re-roof.
+  const ROOF = {2.9:[110,7], 4:[140,9], 6.6:[260,22], 8:[300,26]};
+  if(ROOF[o.roofR]) add('Roof insulation R'+o.roofR+(o.roofR>=6.6?' (re-roof)':' (new ceiling lining)'), ROOF[o.roofR][0]*q.roofA, ROOF[o.roofR][1]*q.roofA);
+  if(o.floorR===1.5) add('Slab edge insulation (dig out perimeter)', 65*q.floorA, 5*q.floorA);
+  if(o.floorR===2.5) add('Break out & re-lay slab', 320*q.floorA, 60*q.floorA);
+  if(o.airtight==='sealed') add('Draught sealing', 7000, 150);
+  if(o.airtight==='mvhr') add('Airtightness + MVHR', 23000, 750);
+  const RETRO = {double:[450,25], lowe:[520,28]};
+  if(o.frame==='alu' && RETRO[o.glass]) add('Retrofit glazing units into existing frames', RETRO[o.glass][0]*q.winA, RETRO[o.glass][1]*q.winA);
+  else if(o.frame!=='alu' || o.glass!=='single') add('New windows & doors (frames + glass)', (FRAME_COST[o.frame]+GLASS_COST[o.glass])*q.winA, (FRAME_EC[o.frame]+GLASS_EC[o.glass])*q.winA, o.frame==='alu'?'existing frames too light for triple glazing':'');
+  if(o.curtains==='thermal') add('Thermal curtains', 140*q.wingWinA, 6*q.wingWinA);
+  if(o.shading==='eaves') add('Eaves / canopies', 350*q.wingWinA*0.5, 20*q.wingWinA*0.5);
+  if(o.shading==='louvres') add('External louvres', 900*q.wingWinA*0.6, 40*q.wingWinA*0.6);
+  const gA = q.courtRoofA*o.roofFrac, dF = o.roofFrac - ORIGINAL_OPTS.roofFrac;
+  const RG = {lowe:[900,40], loweShade:[1150,60]};
+  if(RG[o.roofGlass] && gA>0) add('Courtyard roof glass upgraded', RG[o.roofGlass][0]*gA, RG[o.roofGlass][1]*gA);
+  if(dF>0) add('More roof glazing (+'+fmt(dF*q.courtRoofA)+' m²)', 1100*dF*q.courtRoofA, 60*dF*q.courtRoofA);
+  if(dF<0) add('Roof glazing replaced with roofing (−'+fmt(-dF*q.courtRoofA)+' m²)', 350*-dF*q.courtRoofA, 25*-dF*q.courtRoofA);
+  const CF = {darktile:[180,45], deck:[260,20]};
+  if(CF[o.courtFloor]) add('Courtyard floor', CF[o.courtFloor][0]*q.courtA, CF[o.courtFloor][1]*q.courtA);
+  if(o.screens!=='open'){ const a = screenArea(o.screens); add('Glazed sliding screens to courtyard ('+fmt(a,1)+' m²)', 1300*a, 80*a); }
+  if(o.vents==='autoNight') add('Night-purge controls', 1200, 5);
+  if(o.vents==='none') add('Seal roof vents', 500, 5);
+  if(o.fans==='extract') add('Extract fans', 1800, 60);
+  if(o.heating==='heatpump') add('Heat pumps (incl. refrigerant)', 9000, 900);
+  if(o.heating==='hvac') add('Ducted HVAC (incl. refrigerant)', 28000, 2500);
+  if(o.pv) add(o.pv+' kW solar PV', 2400*o.pv, 550*o.pv);
+  // room edits vs the original layout
+  let addA=0, remA=0, dH=0, glzAdd=0, glzRem=0;
+  model.zones.forEach((z,i)=>{ const b = BASEMODEL.zones[i]; const dA = z.A-b.A; if(dA>0) addA+=dA; else remA-=dA; dH += Math.abs(z.h-b.h)*z.A;
+    const gw = (z.winTot||0) - (b.winTot||0); if(gw>0) glzAdd+=gw; else glzRem-=gw; });
+  if(addA>0) add('Extensions (+'+fmt(addA,1)+' m²)', 4800*addA, 450*addA);
+  if(remA>0) add('Demolition (−'+fmt(remA,1)+' m²)', 600*remA, 50*remA);
+  if(dH>0) add('Ceiling height changes', 1500*dH, 120*dH);
+  if(glzAdd>0) add('Extra glazing (+'+fmt(glzAdd,1)+' m²)', (300+FRAME_COST[o.frame]+GLASS_COST[o.glass])*glzAdd, (FRAME_EC[o.frame]+GLASS_EC[o.glass]+10)*glzAdd);
+  if(glzRem>0) add('Infill glazing (−'+fmt(glzRem,1)+' m²)', 400*glzRem, 25*glzRem);
+  const cost = items.reduce((s,i)=>s+i.cost,0), ec = items.reduce((s,i)=>s+i.ec,0);
+  return {items, cost, ec, q};
+}
+
+/* ===================== RENDERER ===================== */
+const cv = $('#cv'), ctx = cv.getContext('2d');
+const VP = {s:2, p:12, ox:0, oy:0, cx:0, cy:0};
+function rotAB(x,y){ const dx=x-VP.cx, dy=y-VP.cy; switch(S.rot){ case 0:return [dx,dy]; case 1:return [-dy,dx]; case 2:return [-dx,-dy]; default:return [dy,-dx]; } }
+function unrot(a,b){ let dx,dy; switch(S.rot){ case 0:dx=a;dy=b;break; case 1:dx=b;dy=-a;break; case 2:dx=-a;dy=-b;break; default:dx=-b;dy=a; } return [dx+VP.cx, dy+VP.cy]; }
+const ZK = 0.82;
+function PR(a,b,z){ return [VP.ox+(a-b)*VP.p, VP.oy+(a+b)*VP.p/2 - z*VP.p*ZK]; }
+function P(x,y,z){ const [a,b]=rotAB(x,y); return PR(a,b,z); }
+function shade(hex, f){ const n=parseInt(hex.slice(1),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255; r=Math.round(r*f); g=Math.round(g*f); b=Math.round(b*f); return 'rgb('+Math.min(255,r)+','+Math.min(255,g)+','+Math.min(255,b)+')'; }
+function poly(pts, fill, stroke){ ctx.beginPath(); ctx.moveTo(Math.round(pts[0][0]),Math.round(pts[0][1])); for(let i=1;i<pts.length;i++) ctx.lineTo(Math.round(pts[i][0]),Math.round(pts[i][1])); ctx.closePath(); if(fill){ ctx.fillStyle=fill; ctx.fill(); } if(stroke){ ctx.strokeStyle=stroke; ctx.lineWidth=1; ctx.stroke(); } }
+// draw items: {k:sortKey, f:drawFn}
+let ITEMS = [];
+function addBox(x0,y0,x1,y1,z0,z1,col,opt={}){
+  const c1 = rotAB(x0,y0), c2 = rotAB(x1,y1);
+  const a0=Math.min(c1[0],c2[0]), a1=Math.max(c1[0],c2[0]), b0=Math.min(c1[1],c2[1]), b1=Math.max(c1[1],c2[1]);
+  ITEMS.push({k:(a0+a1)/2+(b0+b1)/2 + (opt.bias||0), z:z0, f:()=>{
+    const ol = opt.outline===false ? null : (opt.stroke||shade(col.startsWith('#')?col:'#888888',0.55));
+    if(opt.glass){
+      const g = 'rgba(160,215,245,'+(opt.alpha||0.42)+')';
+      poly([PR(a1,b0,z0),PR(a1,b1,z0),PR(a1,b1,z1),PR(a1,b0,z1)], g, opt.frame);
+      poly([PR(a0,b1,z0),PR(a1,b1,z0),PR(a1,b1,z1),PR(a0,b1,z1)], g, opt.frame);
+      poly([PR(a0,b0,z1),PR(a1,b0,z1),PR(a1,b1,z1),PR(a0,b1,z1)], 'rgba(200,235,255,.55)', opt.frame);
+      return;
+    }
+    poly([PR(a1,b0,z0),PR(a1,b1,z0),PR(a1,b1,z1),PR(a1,b0,z1)], shade(col,0.80), ol);
+    poly([PR(a0,b1,z0),PR(a1,b1,z0),PR(a1,b1,z1),PR(a0,b1,z1)], shade(col,0.64), ol);
+    poly([PR(a0,b0,z1),PR(a1,b0,z1),PR(a1,b1,z1),PR(a0,b1,z1)], opt.top||col, ol);
+  }});
+}
+function addFlat(x0,y0,x1,y1,z,col,stroke,bias=0){
+  const c1 = rotAB(x0,y0), c2 = rotAB(x1,y1);
+  const a0=Math.min(c1[0],c2[0]), a1=Math.max(c1[0],c2[0]), b0=Math.min(c1[1],c2[1]), b1=Math.max(c1[1],c2[1]);
+  ITEMS.push({k:(a0+a1)/2+(b0+b1)/2-0.3+bias, z:z-0.01, f:()=>poly([PR(a0,b0,z),PR(a1,b0,z),PR(a1,b1,z),PR(a0,b1,z)], col, stroke)});
+}
+const FLOORCOL = {living:['#c08a55','#b47f4c'], kitchen:['#e3dccb','#cfc6b1'], bed:['#9a8fb5','#9488ad'], main:['#8c9ec9','#8798c2'], bath:['#cfe3ea','#b9d3dc'],
+  office:['#a7b59a','#9fae92'], hall:['#b9a78b','#ae9c80'], deck:['#a8743f','#9a6936'], concrete:['#b3b1aa','#a9a7a0'], darktile:['#4f535c','#44484f'], tile:['#e4e2dc','#d6d4cd'], rumpus:['#d9d6cf','#cfccc4']};
+function tempCol(t){ const st=[[8,[59,111,216]],[13,[94,197,224]],[18,[143,220,122]],[22,[242,208,74]],[26,[240,138,60]],[30,[216,68,58]]];
+  if(t<=st[0][0]) return 'rgb('+st[0][1]+')'; for(let i=1;i<st.length;i++){ if(t<=st[i][0]){ const f=(t-st[i-1][0])/(st[i][0]-st[i-1][0]); const c=st[i-1][1].map((v,k)=>Math.round(v+(st[i][1][k]-v)*f)); return 'rgb('+c+')'; } } return 'rgb('+st[st.length-1][1]+')'; }
+function hexOf(rgb){ const m=rgb.match(/\d+/g).map(Number); return '#'+m.map(v=>v.toString(16).padStart(2,'0')).join(''); }
+function zoneTemp(i){ if(!R) return null; const s = R.season[S.season][S.mode==='free'?'free':'cond']; return s.T[i][S.hour]; }
+function zoneRH(i){ if(!R) return null; const s = R.season[S.season][S.mode==='free'?'free':'cond']; return s.RH[i][S.hour]; }
+const TREES = [[-3,-4],[14.5,-3.5],[-3,4],[15.5,7],[15.5,13],[-2.5,12],[6,-5.5]];
+
+function furniture(r, i, z){
+  const x0=r.x0*CELL, y0=r.y0*CELL, w=(r.x1-r.x0)*CELL, d=(r.y1-r.y0)*CELL; const cx=x0+w/2, cy=y0+d/2;
+  const B=(x,y,ww,dd,h,col,zz=0,opt)=>{ ww=Math.min(ww,w-0.3); dd=Math.min(dd,d-0.3); if(ww<=0.1||dd<=0.1) return; addBox(x,y,x+ww,y+dd,z+zz,z+zz+h,col,opt); };
+  switch(r.type){
+    case 'living': B(x0+w-1.0,y0+0.3,0.6,0.6,0.7,'#2c2c30');  B(x0+0.4,y0+d-1.4,Math.min(2.6,w-1),0.9,0.45,'#5d8a6a'); B(x0+0.4,y0+d-0.6,Math.min(2.6,w-1),0.25,0.85,'#4f7a5c'); B(cx-0.5,cy-0.6,1.0,0.6,0.4,'#7a5233'); B(x0+w-0.7,y0+0.4,0.3,0.3,1.4,'#e8d27a'); B(x0+0.3,y0+0.3,0.5,0.5,0.7,'#3f8f4a'); break;
+    case 'kitchen': B(x0+w-3.6,y0+0.15,3.3,0.65,0.9,'#d8d4cc',0,{top:'#6b6f78'}); B(x0+w-0.85,y0+0.9,0.65,1.6,0.9,'#d8d4cc',0,{top:'#6b6f78'}); B(x0+w-3.3,cy-0.3,2.2,0.9,0.9,'#d8d4cc',0,{top:'#9a9ea6'}); B(x0+w-0.8,y0+2.7,0.7,0.7,1.85,'#eeeeee'); B(x0+0.6,cy-0.5,1.8,0.9,0.75,'#a8743f'); B(x0+0.6,cy-1.0,0.4,0.4,0.45,'#8a5a33'); B(x0+1.9,cy-1.0,0.4,0.4,0.45,'#8a5a33'); B(x0+0.6,cy+0.5,0.4,0.4,0.45,'#8a5a33'); B(x0+1.9,cy+0.5,0.4,0.4,0.45,'#8a5a33'); break;
+    case 'bed': B(cx-0.7,y0+d-2.3,1.4,2.0,0.5,'#f0f0f0',0,{top:'#5aa9e6'}); B(x0+0.2,y0+0.2,Math.min(1.2,w-0.5),0.6,2.0,'#a0794f'); break;
+    case 'main': B(cx-0.8,y0+d-2.3,1.6,2.0,0.5,'#f0f0f0',0,{top:'#c96b6b'}); B(x0+0.3,y0+0.3,1.2,0.6,0.75,'#7a5233'); B(x0+0.6,y0+1.0,0.45,0.45,0.5,'#333944'); break;
+    case 'bath': B(x0+0.2,y0+d-1.0,Math.min(1.7,w-0.4),0.75,0.55,'#ffffff',0,{top:'#a9d8ec'}); B(x0+0.2,y0+0.3,0.9,0.5,0.85,'#e9e3d4'); B(x0+w-0.7,y0+0.3,0.4,0.6,0.4,'#ffffff'); break;
+    case 'office': B(x0+0.3,y0+d-1.0,Math.min(1.6,w-0.5),0.7,0.75,'#7a5233'); B(x0+0.8,y0+d-1.6,0.45,0.45,0.5,'#333944'); B(x0+w-0.6,y0+0.3,0.4,Math.min(1.8,d-0.6),1.9,'#a0794f'); break;
+    case 'hall': B(x0+0.1,y0+0.4,w-0.2,0.25,0.2,'#8a6a45'); B(x0+0.1,y0+0.65,w-0.2,0.25,0.4,'#8a6a45'); B(x0+0.1,y0+0.9,w-0.2,0.25,0.6,'#8a6a45'); B(x0+0.1,y0+1.15,w-0.2,0.25,0.8,'#8a6a45'); break;
+    case 'rumpus': B(x0+w-1.6,y0+d-0.8,0.6,0.6,0.85,'#f2f2f2'); B(x0+w-0.9,y0+d-0.8,0.6,0.6,0.85,'#e6e6e6'); B(x0+0.4,y0+d-0.8,0.6,0.6,1.6,'#c9ccd1'); B(x0+1.2,y0+d-0.7,1.6,0.5,0.9,'#d8d4cc'); break;
+    case 'hall': if(r.lvl===1) break; B(x0+0.2,y0+0.6,0.4,1.0,1.8,'#a0794f'); break;
+    case 'court':
+      B(cx-1.3,cy-0.8,2.6,1.5,0.72,'#6b4a2e',0,{top:'#2f8a45'}); B(x0+0.4,y0+0.4,0.6,0.6,0.5,'#8a5a3a',0,{top:'#3f8f4a'}); B(x0+0.5,y0+0.5,0.4,0.4,0.6,'#3f8f4a',0.5); B(x0+w-1.0,y0+0.4,0.6,0.6,0.5,'#8a5a3a',0,{top:'#3f8f4a'}); B(x0+w-0.9,y0+0.5,0.4,0.4,0.6,'#3f8f4a',0.5); break;
+  }
+}
+
+function render(){
+  const vp = $('#viewport'); const W = vp.clientWidth, H = vp.clientHeight;
+  VP.s = W>=900 ? 2 : (W>=520 ? 2 : 1);
+  cv.width = Math.floor(W/VP.s); cv.height = Math.floor(H/VP.s);
+  cv.style.width = cv.width*VP.s+'px'; cv.style.height = cv.height*VP.s+'px';
+  ctx.imageSmoothingEnabled = false;
+  // bounds
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  S.rooms.forEach(r=>{ minX=Math.min(minX,r.x0); minY=Math.min(minY,r.y0); maxX=Math.max(maxX,r.x1); maxY=Math.max(maxY,r.y1); });
+  minY=Math.min(minY,DECKS[0].y0); maxY=Math.max(maxY,PARKING.y0+2);
+  const m = 0.3; const bx0=(minX*CELL)-m, by0=(minY*CELL)-m, bx1=(maxX*CELL)+m, by1=(maxY*CELL)+m;
+  VP.cx=(bx0+bx1)/2; VP.cy=(by0+by1)/2;
+  let sxMin=Infinity,sxMax=-Infinity,syMin=Infinity,syMax=-Infinity; VP.p=1; VP.ox=0; VP.oy=0;
+  for(const [x,y] of [[bx0,by0],[bx1,by0],[bx0,by1],[bx1,by1]]) for(const z of [-1.2,6.6]){ const [sx,sy]=P(x,y,z); sxMin=Math.min(sxMin,sx); sxMax=Math.max(sxMax,sx); syMin=Math.min(syMin,sy); syMax=Math.max(syMax,sy); }
+  const fit = Math.min((cv.width-4)/(sxMax-sxMin), (cv.height-4)/(syMax-syMin));
+  VP.p = Math.max(4, Math.floor(fit));
+  VP.ox = Math.round(cv.width/2 - (sxMin+sxMax)/2*VP.p); VP.oy = Math.round(cv.height/2 - (syMin+syMax)/2*VP.p);
+  ctx.fillStyle='#5d7a4e'; ctx.fillRect(0,0,cv.width,cv.height);
+  ITEMS = [];
+  const geo = MODEL ? MODEL.geo : deriveGeometry(S.rooms);
+  const showUpper = S.floor==='upper' || S.view==='roof';
+  const thermal = S.view==='thermal', roofView = S.view==='roof';
+  const CUT_FACE = 1.0, CUT_PART = 1.9;
+  const fr = {alu:'#c9ced6', alutb:'#8e98a3', upvc:'#f4f4f4', timber:'#9a6a3c'}[S.opts.frame];
+  const extCol = S.opts.structure==='wrap' ? '#8d9196' : '#6a6e74';
+  const court = S.rooms.find(r=>r.type==='court');
+  // ---- sloping ground (falls to the north and east)
+  const G=10, gx0=Math.floor(bx0-G), gx1=Math.ceil(bx1+G), gy0=Math.floor(by0-G), gy1=Math.ceil(by1+G);
+  for(let y=gy0; y<gy1; y++) for(let x=gx0; x<gx1; x++){
+    const z00=gz(x,y), z10=gz(x+1,y), z11=gz(x+1,y+1), z01=gz(x,y+1);
+    const slope = (z10-z00)+(z01-z00); const base = ((x+y)&1)? '#6f9a55':'#6a9551';
+    poly([P(x,y,z00),P(x+1,y,z10),P(x+1,y+1,z11),P(x,y+1,z01)], shade(base, 1+Math.max(-0.12,Math.min(0.12,slope*0.6))), null);
+  }
+  // contour lines every 0.5 m
+  ctx.strokeStyle='rgba(40,70,30,.35)';
+  for(let y=gy0; y<gy1; y++) for(let x=gx0; x<gx1; x++){ const a=gz(x,y), b=gz(x,y+1); const lv=Math.floor(Math.max(a,b)*2)/2; if(lv>Math.min(a,b) && lv<=Math.max(a,b)){ const t=(lv-a)/(b-a); const p0=P(x,y+t,lv), p1=P(x+1,y+t,lv); ctx.beginPath(); ctx.moveTo(p0[0],p0[1]); ctx.lineTo(p1[0],p1[1]); ctx.stroke(); } }
+  // ---- drive, front path, decks, stairs, trees
+  for(let x=PARKING.x0;x<PARKING.x1;x+=2) for(let y=PARKING.y0;y<PARKING.y1;y+=2){ const z=gz((x+1)*CELL,(y+1)*CELL); addFlat(x*CELL,y*CELL,(x+2)*CELL,(y+2)*CELL,z+0.03,((x+y)/2)%2?'#8a8781':'#827f79',null,-2); }
+  addBox(8.5,PARKING.y0*CELL+0.4,12.9,PARKING.y0*CELL+2.2,gz(10.5,PARKING.y0*CELL+1.3)+0.05,gz(10.5,PARKING.y0*CELL+1.3)+1.35,'#c84b3c',{top:'#d9604f'});
+  const fd = doorEdges(geo).front;
+  if(fd){ const x0=fd.x0, x1=fd.x1; const ys=(fd.y)*CELL, ye=PARKING.y0*CELL; for(let y=ys; y<ye; y+=0.5){ const z=Math.max(0,gz((x0+x1)/2,y+0.25)); addFlat(x0-0.2,y,x1+0.2,y+0.5,z+0.04,(Math.round(y*2)%2)?'#b9b2a4':'#aea797',null,-0.5); } }
+  for(const dk of DECKS){ const dz = 0; if(dk.paving){ for(let x=dk.x0;x<dk.x1;x++) for(let y=dk.y0;y<dk.y1;y++){ if(geo.map.has('0,'+x+','+y)) continue; addFlat(x*CELL,y*CELL,(x+1)*CELL,(y+1)*CELL,gz((x+.5)*CELL,(y+.5)*CELL)+0.03,((x+y)%2)?'#b0857a':'#a87c70',null,-0.3); } for(let x=dk.x0;x<dk.x1;x+=4){ const xm=x*CELL+0.3, ym=dk.y0*CELL+0.3, g=gz(xm,ym); addBox(xm,ym,xm+0.12,ym+0.12,g,2.4,'#a07444',{}); } continue; } for(let x=dk.x0;x<dk.x1;x++) for(let y=dk.y0;y<dk.y1;y++){ if(geo.map.has('0,'+x+','+y)) continue; addFlat(x*CELL,y*CELL,(x+1)*CELL,(y+1)*CELL,dz+0.02,(x%2)?'#a8743f':'#9d6a37',null,-0.2); }
+    for(let x=dk.x0;x<=dk.x1;x+=4) for(let y=dk.y0;y<=dk.y1;y+=4){ if(geo.map.has('0,'+Math.min(x,dk.x1-1)+','+Math.min(y,dk.y1-1))) continue; const xm=Math.min(x,dk.x1-0.3)*CELL, ym=Math.min(y,dk.y1-0.3)*CELL; const g=gz(xm,ym); if(g<-0.1) addBox(xm,ym,xm+0.15,ym+0.15,g,dz,'#7a5a36',{bias:-0.3}); } }
+  { const sx0=17*CELL, sx1=19*CELL; let z=0, y=DECKS[0].y0*CELL; while(z>gz(9,y)+0.15 && z>-3){ y-=0.3; z-=0.18; addBox(sx0,y,sx1,y+0.3,z-0.05,z,'#9d6a37',{bias:-0.1}); } }
+  for(const [tx,ty] of TREES){ const g=gz(tx,ty); addBox(tx-0.2,ty-0.2,tx+0.2,ty+0.2,g,g+1.6,'#6b4a2e'); addBox(tx-1.1,ty-1.1,tx+1.1,ty+1.1,g+1.6,g+3.2,'#3d7d3f'); addBox(tx-0.7,ty-0.7,tx+0.7,ty+0.7,g+3.2,g+4.2,'#4f9a4e'); }
+  // ---- foundations: piles under the north wing ("open below"), concrete plinth elsewhere
+  S.rooms.forEach(r=>{ if((r.lvl||0)!==0) return; const x0=r.x0*CELL,y0=r.y0*CELL,x1=r.x1*CELL,y1=r.y1*CELL;
+    const gmin = Math.min(gz(x0,y0),gz(x1,y0),gz(x0,y1),gz(x1,y1)); if(gmin>=-0.05) return;
+    if(wingOf(r)==='north'){ addBox(x0,y0,x1,y1,-0.3,-0.03,'#8a6a45',{bias:-1.2,outline:false}); for(let x=r.x0;x<=r.x1;x+=4) for(const y of [r.y0,r.y1-0.3]){ const xm=Math.min(x,r.x1-0.3)*CELL, ym=y*CELL; addBox(xm,ym,xm+0.15,ym+0.15,gz(xm,ym),-0.3,'#6f5534',{bias:-1.1}); } }
+    else addBox(x0,y0,x1,y1+(wingOf(r)==='south'&&r.y1===wingBounds('south').y1?0.4:0),gmin,Math.min(-0.03,(r.fz||0)-0.03),'#9c968b',{bias:-1.2,outline:false}); });
+  // ---- floors and furniture
+  S.rooms.forEach((r,i)=>{
+    const lvl = r.lvl||0; if(lvl===1 && !showUpper) return;
+    const z = (lvl?LVL1Z:0)+(r.fz||0);
+    let pal = FLOORCOL[r.type] || FLOORCOL.hall;
+    if(r.type==='court') pal = FLOORCOL[S.opts.courtFloor==='deck'?'deck':S.opts.courtFloor];
+    const tc = thermal ? hexOf(tempCol(zoneTemp(i))) : null;
+    for(let x=r.x0;x<r.x1;x++) for(let y=r.y0;y<r.y1;y++){
+      let col = tc ? ((x+y)%2? tc : shade(tc,0.94)) : pal[(r.type==='court'&&S.opts.courtFloor==='deck') ? (x%2) : ((x+y)%2)];
+      addFlat(x*CELL,y*CELL,(x+1)*CELL,(y+1)*CELL,z+0.02,col,null, lvl? 0.001: -0.05);
+    }
+    if(wingOf(r)==='south' && r.y1===wingBounds('south').y1) for(let x=r.x0;x<r.x1;x++){ const b=bowY((x+0.5)*CELL); if(b>0.02) addFlat(x*CELL,r.y1*CELL,(x+1)*CELL,r.y1*CELL+b,z+0.02,(FLOORCOL[r.type]||FLOORCOL.hall)[x%2],null,-0.05); }
+    if(lvl===1) addBox(r.x0*CELL,r.y0*CELL,r.x1*CELL,r.y1*CELL+(wingOf(r)==='south'&&r.y1===wingBounds('south').y1?0.3:0),z-0.25,z,'#d8d1c2',{bias:-0.6,outline:false});
+    if(!roofView && !(lvl===0 && showUpper && hasAbove(geo,r))) furniture(r,i,z);
+  });
+  // ---- stair from the courtyard up to the gallery, and the gallery balustrade
+  const gal = S.rooms.find(r=>r.id==='gallery');
+  if(court && !roofView){ const gy1=court.y1*CELL, xe=court.x1*CELL, ST='#a07444';
+    // dog-leg stair at the east end: up to a landing at the study (+1.1 m), then back west up to the gallery
+    for(let k=0;k<5;k++){ const xs=xe-2.0+k*0.34; addBox(xs,gy1-0.6,xs+0.34,gy1-0.02,0,(k+1)*0.22,ST,{bias:0.2}); }
+    addBox(xe-0.35,gy1-1.2,xe-0.02,gy1-0.02,0,1.1,ST,{bias:0.21});
+    for(let k=0;k<6;k++){ const xs=xe-0.35-(k+1)*0.3; addBox(xs,gy1-1.2,xs+0.3,gy1-0.62,0,1.1+(k+1)*0.27,ST,{bias:0.22}); }
+    addBox(xe-2.6,gy1-1.2,xe-2.15,gy1-0.02,LVL1Z-0.2,LVL1Z,ST,{bias:0.23});
+    if(showUpper && gal){ addBox(gal.x0*CELL,gal.y0*CELL,gal.x1*CELL,gal.y0*CELL+0.06,LVL1Z,LVL1Z+0.95,'#c79a63',{bias:0.31});
+      for(let x=gal.x0;x<=gal.x1;x+=3) addBox(x*CELL,gal.y0*CELL,x*CELL+0.1,gal.y0*CELL+0.1,LVL1Z,LVL1Z+1.0,'#a07444',{bias:0.32}); } }
+  // ---- walls (with doors) 
+  const D = doorEdges(geo);
+  for(const e of geo.edges){
+    const r = S.rooms[e.room]; if(e.lvl===1 && !showUpper) continue;
+    const screened = (r.id==='kitchen'&&S.opts.screens!=='open')||(r.id==='utility'&&S.opts.screens==='both');
+    let x0,y0,x1,y1; const t=0.12;
+    if(e.dir==='N'){ x0=e.x*CELL; x1=x0+CELL; y0=e.y*CELL-t/2; y1=y0+t; }
+    if(e.dir==='S'){ x0=e.x*CELL; x1=x0+CELL; y0=(e.y+1)*CELL-t/2; y1=y0+t; }
+    if(e.dir==='W'){ y0=e.y*CELL; y1=y0+CELL; x0=e.x*CELL-t/2; x1=x0+t; }
+    if(e.dir==='E'){ y0=e.y*CELL; y1=y0+CELL; x0=(e.x+1)*CELL-t/2; x1=x0+t; }
+    if(e.kind==='ext' && e.dir==='S' && wingOf(r)==='south'){ const b=bowY((e.x+0.5)*CELL); y0+=b; y1+=b; }
+    const z0 = e.z0 + (e.lvl===(r.lvl||0) ? (r.fz||0) : 0); let fullTop = z0+e.h;
+    const at = archTop(r, e); if(at!==null) fullTop = at;
+    if(e.kind==='court' && r.open && !screened){ // open to the conservatory: show the 100x100 posts and a beam
+      if(e.lvl===0 && (e.x+e.y)%3===0 && !roofView) addBox((x0+x1)/2-0.06,(y0+y1)/2-0.06,(x0+x1)/2+0.06,(y0+y1)/2+0.06,0,showUpper||e.h<2.2?Math.min(fullTop,e.z0+e.h):CUT_PART,'#b88a55',{});
+      if(roofView) addBox(x0,y0,x1,y1,fullTop-0.3,fullTop,'#e9e4da',{outline:false});
+      continue; }
+    const n = DIRS[e.dir]; const nr = rotAB(VP.cx+n[0], VP.cy+n[1]); const facing = (nr[0]+nr[1])>0;
+    let top = fullTop;
+    if(!roofView){ const activeLvl = showUpper ? 1 : 0;
+      if(showUpper && e.lvl===0 && wingOf(r)==='north') top = Math.min(fullTop, z0+(e.kind==='ext'&&facing?CUT_FACE:CUT_PART));
+      if(e.lvl===activeLvl){ if(e.kind==='ext' && facing) top = Math.min(fullTop, z0+CUT_FACE); else if(e.kind!=='ext') top = Math.min(fullTop, z0+CUT_PART); } }
+    const col = e.kind==='ext' ? extCol : '#e9e4da';
+    const door = D.map.get(e);
+    if(door){
+      const dh = z0+2.1;
+      if(door==='front'){ addBox(x0,y0,x1,y1,z0,Math.min(top,dh),'#7a4a2a',{}); }
+      else if(door==='glass'){ addBox(x0,y0,x1,y1,z0,Math.min(top,dh)-0.02,'#ffffff',{glass:true, frame:fr}); }
+      if(top>dh) addBox(x0,y0,x1,y1,dh,top, e.glazed?'#ffffff':col, e.glazed?{glass:true,frame:fr}:{outline:false});
+      continue;
+    }
+    const W = winAt(r, e);
+    if(W===null){ addBox(x0,y0,x1,y1,z0,top,col,{outline:false}); continue; }
+    if(W || (e.kind==='ext' && e.glazed && (r.glaze[e.dir]||0)<0.6 && r.type!=='court')){
+      const sill = z0+(W?W.sill:0.9), head = z0+(W?W.head:2.1);
+      if(sill>z0) addBox(x0,y0,x1,y1,z0,Math.min(top,sill),col,{outline:false});
+      if(top>sill+0.05){ addBox(x0,y0,x1,y1,sill,Math.min(top,head),'#ffffff',{glass:true, frame:fr}); }
+      if(top>head) addBox(x0,y0,x1,y1,head,top,col,{outline:false});
+      continue; }
+    if(e.glazed){
+      addBox(x0,y0,x1,y1,z0,z0+0.08,fr,{});
+      if(top-z0>0.2) addBox(x0,y0,x1,y1,z0+0.08,top-0.04,'#ffffff',{glass:true, frame:fr});
+      addBox(x0,y0,x1,y1,top-0.04,top,fr,{});
+    } else addBox(x0,y0,x1,y1,z0,top,col,{outline:false});
+  }
+  // ---- roofs: corrugated barrel vaults along each wing; glazed gable over the conservatory
+  if(roofView){
+    S.rooms.forEach((r,i)=>{
+      if(r.type==='court') return;
+      if((r.lvl||0)===0 && hasAbove(geo,r)) return;
+      for(let x=r.x0;x<r.x1;x++){ const z = archZ(wingOf(r), (x+0.5)*CELL); if(z===null) continue;
+        const yo = (r.y0===wingBounds(wingOf(r)).y0)?-0.3:0, yi=(r.y1===wingBounds(wingOf(r)).y1)?0.3+(wingOf(r)==='south'?bowY((x+0.5)*CELL):0):0;
+        addBox(x*CELL,r.y0*CELL+yo,(x+1)*CELL,r.y1*CELL+yi,z,z+0.1,(x%2)?'#c5ccd2':'#b4bcc3',{bias:0.4,outline:false}); }
+    });
+    if(court){ const r=court, i=S.rooms.indexOf(court), f=S.opts.roofFrac, ny=r.y1-r.y0, ym=(r.y0+r.y1)/2;
+      const fcol = S.opts.roofGlass==='single'?'#9aa3ad':'#5b6672';
+      for(let y=r.y0;y<r.y1;y++){ const u=Math.abs(y+0.5-ym)/(ny/2); const z=r.h+0.9*(1-u); const glass = u <= f+0.001;
+        if(glass) addBox(r.x0*CELL,y*CELL,r.x1*CELL,(y+1)*CELL,z,z+0.08,'#fff',{glass:true,frame:fcol,alpha:S.opts.roofGlass==='loweShade'?0.6:0.32,bias:0.55});
+        else addBox(r.x0*CELL,y*CELL,r.x1*CELL,(y+1)*CELL,z,z+0.12,(y%2)?'#c5ccd2':'#b4bcc3',{bias:0.55,outline:false}); }
+      const open = R && R.season[S.season].free.T[i][S.hour]>24 && S.opts.vents!=='none';
+      for(let x=r.x0+2;x<r.x1-1;x+=6) addBox(x*CELL,ym*CELL-0.35,x*CELL+1.0,ym*CELL+0.35,r.h+0.95,r.h+(open?1.45:1.1),'#7a828c',{bias:0.7}); }
+    if(S.opts.pv){ const panels = Math.round(S.opts.pv*2.5); let n=0;
+      const host = S.rooms.filter(r=>wingOf(r)==='south' && (r.lvl||0)===1).concat(S.rooms.filter(r=>wingOf(r)==='north'));
+      for(const r of host){ for(let x=r.x0+1; x+2<=r.x1-1 && n<panels; x+=2){ const z=archZ(wingOf(r),(x+1)*CELL)+0.12; addBox(x*CELL,(r.y0+1)*CELL,(x+2)*CELL-0.05,(r.y1-1)*CELL,z,z+0.08,'#24356b',{top:'#2f4a9a',bias:0.8}); n++; } } }
+  }
+  ITEMS.sort((p,q)=> p.k-q.k || p.z-q.z);
+  for(const it of ITEMS) it.f();
+  // selection outline
+  if(S.sel!==null){ const r = S.rooms[S.sel]; const z = (r.lvl?LVL1Z:0)+0.03; const pts=[P(r.x0*CELL,r.y0*CELL,z),P(r.x1*CELL,r.y0*CELL,z),P(r.x1*CELL,r.y1*CELL,z),P(r.x0*CELL,r.y1*CELL,z)];
+    ctx.setLineDash([3,2]); poly(pts,null,'#ffe14d'); ctx.setLineDash([]); }
+  // compass
+  const cxp = cv.width-26, cyp = 26; const nv = rotAB(VP.cx, VP.cy-1); const sx=(nv[0]-nv[1]), sy=(nv[0]+nv[1])/2; const L=Math.hypot(sx,sy);
+  ctx.fillStyle='rgba(20,22,34,.8)'; ctx.fillRect(cxp-20,cyp-20,40,40); ctx.strokeStyle='#ffe14d'; ctx.beginPath(); ctx.moveTo(cxp-sx/L*12,cyp-sy/L*12); ctx.lineTo(cxp+sx/L*12,cyp+sy/L*12); ctx.stroke();
+  ctx.fillStyle='#ffe14d'; ctx.fillRect(Math.round(cxp+sx/L*12)-2,Math.round(cyp+sy/L*12)-2,4,4); ctx.font='9px monospace'; ctx.fillText('N',Math.round(cxp+sx/L*15)-3,Math.round(cyp+sy/L*15)+3);
+  renderLabels();
+}
+
+/* ===================== SITE, ROOFS, DOORS ===================== */
+// Ground level relative to the ground-floor slab (m). From the 1994 site plan: the land falls about 2 m to the north and 0.5 m to the east.
+function gz(xm, ym){ return Math.max(-2.8, Math.min(0.4, -0.15 - 0.1*Math.max(0,xm-1) - 0.18*Math.max(0,6.5-ym))); }
+function bowY(xm){ const b=wingBounds('south'); const xc=(b.x0+b.x1)/2*CELL, hl=(b.x1-b.x0)/2*CELL; const u=Math.max(-1,Math.min(1,(xm-xc)/hl)); return 0.45*(1-u*u); }
+function wingOf(r){ const c = S.rooms.find(q=>q.type==='court'); if(r.type==='court' || !c) return null; return r.y1<=c.y0 ? 'north' : (r.y0>=c.y1 ? 'south' : null); }
+function wingBounds(w){ let b={x0:1e9,x1:-1e9,y0:1e9,y1:-1e9}; S.rooms.forEach(r=>{ if(wingOf(r)!==w) return; b.x0=Math.min(b.x0,r.x0); b.x1=Math.max(b.x1,r.x1); b.y0=Math.min(b.y0,r.y0); b.y1=Math.max(b.y1,r.y1); }); return b; }
+const ARCH = {north:{eave:2.95, rise:0.7}, south:{eave:4.9, rise:1.2}};
+function archZ(w, xm){ if(!w) return null; const b=wingBounds(w), a=ARCH[w]; const xc=(b.x0+b.x1)/2*CELL, hl=(b.x1-b.x0)/2*CELL; const u=Math.max(-1,Math.min(1,(xm-xc)/hl)); return a.eave + a.rise*(1-u*u); }
+// top of a wall edge: walls under the barrel vaults follow the curve (the vault runs east-west along each wing)
+function archTop(r, e){ const w = wingOf(r); if(!w) return null; const geo = MODEL?MODEL.geo:null;
+  const lvlTop = bandsOf(r).slice(-1)[0].lvl; if(e.lvl!==lvlTop) return null; if((r.lvl||0)===0 && geo && hasAbove(geo,r)) return null;
+  const xm = (e.dir==='E') ? (e.x+1)*CELL : (e.dir==='W' ? e.x*CELL : (e.x+0.5)*CELL); return archZ(w, xm); }
+const EXT_DOORS = [{room:'entry',dir:'S',n:2,type:'front'},{room:'kitchen',dir:'N',n:2,type:'glass'},{room:'living',dir:'N',n:2,type:'glass'},{room:'court',dir:'W',n:3,type:'glass'},{room:'court',dir:'E',n:3,type:'glass'}];
+function midEdges(list, n){ if(!list.length) return []; const s=list.slice().sort((a,b)=>a.x-b.x||a.y-b.y); const k=Math.min(n,s.length), st=Math.floor((s.length-k)/2); return s.slice(st,st+k); }
+function doorEdges(geo){
+  const map = new Map(); let front = null;
+  for(const d of EXT_DOORS){ const i=S.rooms.findIndex(r=>r.id===d.room); if(i<0) continue; const list=geo.per[i].ext[d.dir].filter(e=>e.lvl===0);
+    const m = midEdges(list,d.n); m.forEach(e=>map.set(e,d.type));
+    if(d.type==='front' && m.length){ const xs=m.map(e=>e.x); front={x0:Math.min(...xs)*CELL, x1:(Math.max(...xs)+1)*CELL, y:m[0].y+1}; } }
+  geo.per.forEach((P,i)=>{ const r=S.rooms[i];
+    for(const nb in P.parts){ const l=P.parts[nb]; if(l[0].kind==='cc') continue; for(const lv of [0,1]){ const sub=l.filter(e=>e.lvl===lv && e.lvl===(r.lvl||0)); midEdges(sub, sub.length>=6?2:1).forEach(e=>map.set(e,'gap')); } }
+    if(!r.open){ for(const lv of [0,1]){ const sub=P.courtEdges.filter(e=>e.lvl===lv && e.lvl===(r.lvl||0)); midEdges(sub,2).forEach(e=>map.set(e,'glass')); } } });
+  return {map, front};
+}
+
+// Explicit window placed on this wall cell? Returns the window, null (solid wall) or undefined (use generic glazing).
+function winAt(r, e){
+  if(e.kind!=='ext' || !r.wins || !r.wins[e.dir] || e.lvl!==(r.lvl||0)) return undefined;
+  const base = (BASE_ROOMS.find(b=>b.id===r.id)||r).glaze[e.dir]||0, cur = r.glaze[e.dir]||0;
+  if(base===0) return cur>0 ? undefined : null;
+  const k = Math.max(0, cur/base), xm = (e.dir==='N'||e.dir==='S') ? (e.x+0.5)*CELL : (e.y+0.5)*CELL;
+  for(const w of r.wins[e.dir]){ const c=(w.x0+w.x1)/2, hw=Math.max(0.25,(w.x1-w.x0)/2*k); if(k>0 && xm>c-hw && xm<c+hw) return w; }
+  return null;
+}
+function hasAbove(geo,r){ if((r.lvl||0)!==0 || r.type==='court') return false; for(let x=r.x0;x<r.x1;x++) for(let y=r.y0;y<r.y1;y++){ const a=geo.map.get('1,'+x+','+y); if(a!==undefined && a!==S.rooms.indexOf(r) && S.rooms[a].type!=='court') return true; } return false; }
+function renderLabels(){
+  const box = $('#labels'); box.style.width=cv.style.width; box.style.height=cv.style.height;
+  let html='';
+  const showUpper = S.floor==='upper' || S.view==='roof';
+  S.rooms.forEach((r,i)=>{
+    const lvl=r.lvl||0; if(S.view==='roof') return;
+    if(showUpper && lvl===0 && r.type!=='court' && hasAbove(MODEL?MODEL.geo:deriveGeometry(S.rooms),r)) return;
+    if(!showUpper && lvl===1) return;
+    if(showUpper && lvl===0) return;
+    const z=(lvl?LVL1Z:0)+(r.fz||0)+0.3; const [sx,sy]=P((r.x0+r.x1)/2*CELL,(r.y0+r.y1)/2*CELL,z);
+    const short = r.name.replace(' (upper)','');
+    if(S.view==='thermal' && R){ html+=`<div class="lbl" style="left:${sx*VP.s}px;top:${sy*VP.s}px">${fmt(zoneTemp(i),1)}°</div>`; }
+    else if(r.id!=='gallery' || showUpper) html+=`<div class="lbl" style="left:${sx*VP.s}px;top:${sy*VP.s}px;font-size:${i===S.sel?16:14}px;${i===S.sel?'color:#ffe14d':''}">${short}</div>`;
+  });
+  if(S.view!=='roof' && S.floor!=='upper' && MODEL){ const fd=doorEdges(MODEL.geo).front; if(fd){ const [sx,sy]=P((fd.x0+fd.x1)/2, fd.y*CELL+1.8, 0.3); html+=`<div class="lbl" style="left:${sx*VP.s}px;top:${sy*VP.s}px;font-size:14px;color:#ffe6a0">front door</div>`; } }
+  box.innerHTML=html;
+}
+function pick(ev){
+  const rect = cv.getBoundingClientRect(); const sx=(ev.clientX-rect.left)/VP.s, sy=(ev.clientY-rect.top)/VP.s;
+  const geo = MODEL ? MODEL.geo : deriveGeometry(S.rooms);
+  const tryLvl = (S.floor==='upper') ? [1,0] : [0];
+  for(const l of tryLvl){
+    const z = l?LVL1Z:0; const amb=(sx-VP.ox)/VP.p, apb=(sy-VP.oy+z*VP.p*ZK)/(VP.p/2);
+    const a=(amb+apb)/2, b=(apb-amb)/2; const [x,y]=unrot(a,b);
+    const cx=Math.floor(x/CELL), cy=Math.floor(y/CELL); const i = geo.map.get(l+','+cx+','+cy);
+    if(i!==undefined) return i;
+  }
+  return null;
+}
+
+/* ===================== UI: EDIT PANEL ===================== */
+function priceTag(key, v){
+  if(!MODEL || !BASEMODEL) return '';
+  const cur = costing(MODEL); const alt = Object.assign({}, S.opts, {[key]:v});
+  const C1 = costing(Object.assign({}, MODEL, {opts:alt}));
+  const dc = C1.cost-cur.cost, de = C1.ec-cur.ec;
+  if(Math.abs(dc)<50 && Math.abs(de)<5) return '';
+  const k = n=> (Math.abs(n)>=1000? (n/1000).toFixed(Math.abs(n)>=10000?0:1)+'k' : Math.round(n));
+  return `<span class="c">${dc>=0?'+':'−'}$${k(Math.abs(dc))} · ${de>=0?'+':'−'}${k(Math.abs(de))} kg</span>`;
+}
+function optHtml(key){
+  const o = OPTS[key]; const cur = S.opts[key];
+  return `<div class="opt"><div class="optlab"><span>${o.label}</span><button class="info" data-info="${o.info}" title="What is this?">i</button></div><div class="choices">${
+    o.choices.map(c=>{ const on = String(c.v)===String(cur); return `<button data-opt="${key}" data-v="${c.v}" class="${on?'on':''}" title="${c.d||''}">${c.t}${on?'':' '+priceTag(key,c.v)}</button>`; }).join('')}</div></div>`;
+}
+function setPlay(mode){
+  if(mode===S.play) return;
+  if(mode==='sandbox'){ S.taskSave={opts:clone(S.opts)}; const sv=S.sandSave||{rooms:clone(BASE_ROOMS), opts:clone(S.opts)}; S.rooms=sv.rooms; S.opts=sv.opts; toast('Sandbox: change anything, including rooms. Nothing here counts towards the tasks.'); }
+  else { S.sandSave={rooms:S.rooms, opts:S.opts}; S.rooms=clone(BASE_ROOMS); S.opts=S.taskSave.opts; toast('Back to the task. Your task design has been restored.'); }
+  S.play=mode; S.sel=null; HIST.length=0; document.body.classList.toggle('sandbox', mode==='sandbox'); recompute();
+}
+function roomPanel(){
+  if(S.play==='task'){ const r = S.sel!==null ? S.rooms[S.sel] : null, z = r ? MODEL.zones[S.sel] : null;
+    return `<div class="panel pixbox"><h2>${r? r.name.toUpperCase() : 'ROOMS'}</h2>${r? `<div class="hint">${fmt(z.A,1)} m² floor · ${fmt(z.V,0)} m³ of air · ${r.type==='court'?'unheated in-between space':(z.heated?'heated room':'unheated')}</div>`:''}
+    <p class="hint">In the tasks the rooms stay as Cook designed them: retrofit the fabric and systems below. To experiment with room sizes, ceiling heights and window sizes, use the <b>Sandbox</b> (nothing there counts towards the tasks).</p>
+    <button class="btn" data-act="sandbox">OPEN SANDBOX</button></div>`; }
+  if(S.sel===null) return `<div class="panel pixbox"><h2>SANDBOX · ROOMS</h2><p class="hint">Click a room on the drawing to resize it, change its ceiling height or change how much glass it has. Use <b>GROUND / UPPER</b> to reach the upstairs rooms. Nothing in the sandbox counts towards the tasks.</p><button class="btn primary" data-act="tasks">◀ BACK TO TASKS</button></div>`;
+  if(S.sel===null) return `<div class="panel pixbox"><h2>SELECTED ROOM</h2><p class="hint">Click a room on the drawing to resize it, change its ceiling height or change how much glass it has. Use <b>GROUND / UPPER</b> to reach the upstairs bedrooms.</p></div>`;
+  const i=S.sel, r=S.rooms[i], z = MODEL.zones[i], P = MODEL.geo.per[i];
+  const isC = r.type==='court';
+  let h = `<div class="panel pixbox"><h2>${r.name.toUpperCase()}<button class="info" data-info="${isC?'roofglass':'rvalue'}">i</button></h2>
+  <div class="hint">${fmt(z.A,1)} m² floor · ${fmt(z.V,0)} m³ of air · ${isC?'unheated in-between space':(z.heated?'heated room':'unheated')}</div>`;
+  if(R){ const s=R.season[S.season].free; h+=`<div class="hint" style="margin-top:4px">Building alone, ${SEASONS[S.season].label.toLowerCase()}: ${HOURS.map(hh=>hh+':00 <b>'+fmt(s.T[i][hh],1)+'°</b>').join(' · ')}</div>`; }
+  h+=`<h3>CEILING HEIGHT</h3><div class="stepper"><button data-act="h-">−</button><span class="v">${r.h.toFixed(1)} m</span><button data-act="h+">+</button><span class="hint">Taller = more air to heat, more wall, stronger stack effect.</span></div>`;
+  if(!isC){
+    h+=`<h3>MOVE WALLS (0.5 m)</h3>`;
+    for(const d of ['N','E','S','W']){
+      const cdir = P.courtEdges.some(e=>e.dir===d);
+      const label = {N:'North',E:'East',S:'South',W:'West'}[d];
+      h+=`<div class="stepper" style="margin:3px 0"><span style="width:52px;font-size:12px">${label}</span>${cdir?'<span class="hint">faces courtyard (fixed)</span>':`<button data-act="wall" data-d="${d}" data-delta="-1" title="Pull in">−</button><button data-act="wall" data-d="${d}" data-delta="1" title="Push out">+</button>`}</div>`;
+    }
+  }
+  h+=`<h3>GLAZING (share of wall that is glass)</h3>`;
+  const sides = ['N','E','S','W'].filter(d=>P.ext[d].length>0); if(P.courtEdges.length && !(r.open && MODEL.zones[i] && !MODEL.links.some(l=>l.a===i && l.glazA>0))) sides.push('C');
+  for(const d of sides){ const lab = d==='C'?'To courtyard':({N:'North',E:'East',S:'South',W:'West'}[d]);
+    h+=`<div class="stepper" style="margin:3px 0"><span style="width:92px;font-size:12px">${lab}</span><button data-act="glz" data-d="${d}" data-delta="-0.1">−</button><span class="v" style="min-width:52px">${Math.round((r.glaze[d]||0)*100)}%</span><button data-act="glz" data-d="${d}" data-delta="0.1">+</button></div>`; }
+  h+=`<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn" data-act="deselect">DONE</button><button class="btn primary" data-act="tasks">◀ BACK TO TASKS</button></div></div>`;
+  return h;
+}
+function renderEdit(){
+  const groups = {};
+  for(const k in OPTS){ (groups[OPTS[k].group]=groups[OPTS[k].group]||[]).push(k); }
+  let h = roomPanel();
+  const titles = {Living:'HOW PEOPLE LIVE', Fabric:'FABRIC', Glazing:'WINDOWS & SHADING', Courtyard:'COURTYARDS', Systems:'SYSTEMS'};
+  for(const g of ['Living','Fabric','Glazing','Courtyard','Systems']) h += `<div class="panel pixbox"><h2>${titles[g]}</h2>${groups[g].map(optHtml).join('')}</div>`;
+  $('#edit').innerHTML = h;
+}
+
+/* ===================== UI: HUD ===================== */
+function bar(label, val, max, col, txt){ const w = Math.max(1, Math.min(100, 100*val/max)); return `<div class="bar"><span>${label}</span><span class="track"><span class="fill" style="width:${w}%;background:${col}"></span></span><span class="num">${txt}</span></div>`; }
+function delta(cur, prev, unit, goodDown=true, d=0){ if(prev===null||prev===undefined) return ''; const df=cur-prev; if(Math.abs(df) < Math.pow(10,-d)*0.5) return ''; const good = goodDown ? df<0 : df>0; return `<span class="${good?'down':'up'}">${df>0?'▲':'▼'} ${fmt(Math.abs(df),d)}${unit} since last change</span>`; }
+function criteria(){
+  const C = costing(MODEL), B = CONFIG.limits;
+  const c1 = [
+    {ok: R.demandM2 <= R90.demandM2, t:`Energy demand ≤ ${fmt(R90.demandM2,1)} kWh/m² (the 1990s house)`},
+    {ok: R.condHab.length===0, t:'No condensation risk in heated rooms on a winter morning'},
+    {ok: C.cost <= B[1].cost, t:`Retrofit budget ≤ ${money(B[1].cost)} (now ${money(C.cost)})`},
+    {ok: C.ec <= B[1].ec, t:`Embodied carbon ≤ ${fmt(B[1].ec)} kg (now ${fmt(C.ec)} kg)`}];
+  const c2 = [
+    {ok: R.demandM2 <= R26.demandM2, t:`Energy demand ≤ ${fmt(R26.demandM2,1)} kWh/m² (the 2026 code-minimum house)`},
+    {ok: R.condRooms.length===0 && R.mouldRooms.length===0, t:'No condensation or mould risk anywhere, courtyard included'},
+    {ok: R.hot <= 1000, t:'Overheating: no more than 1,000 room-hours a year above 26°C with no air conditioning (the building alone)'},
+    {ok: C.cost <= B[2].cost, t:`Retrofit budget ≤ ${money(B[2].cost)} (now ${money(C.cost)})`},
+    {ok: C.ec <= B[2].ec, t:`Embodied carbon ≤ ${fmt(B[2].ec)} kg (now ${fmt(C.ec)} kg)`}];
+  return {c1, c2, t1:c1.every(c=>c.ok), t2:c2.every(c=>c.ok), C};
+}
+function meter(label, val, max, unit){ const f=val/max; const col = f>1? 'var(--red)' : f>0.85? 'var(--amber)' : 'var(--green)';
+  return `<div class="bar"><span>${label}</span><span class="track"><span class="fill" style="width:${Math.min(100,100*f)}%;background:${col}"></span></span><span class="num" style="color:${col}">${unit(val)}</span></div>`; }
+function taskPanel(cr){
+  if(S.play==='sandbox') return `<div class="panel pixbox"><h2>SANDBOX</h2><p class="hint">You are experimenting. Changes here (including room sizes) do not count towards the tasks, and your task design is kept safe.</p><button class="btn primary" data-act="tasks">◀ BACK TO TASKS</button></div>`;
+  const row = c=>`<div class="crit ${c.ok?'pass':'fail'}"><span class="m">${c.ok?'✔':'✘'}</span><span>${c.t}</span></div>`;
+  if(!S.done[1]) return `<div class="panel pixbox"><h2>TASK 1 OF 2</h2><div class="task"><div class="tt">BEAT THE 1990s HOUSE</div>${cr.c1.map(row).join('')}
+    <button class="btn primary" data-submit="1" ${cr.t1?'':'disabled'}>SUBMIT TASK 1</button></div><p class="hint">Task 2 unlocks when you submit Task 1.</p></div>`;
+  if(!S.done[2]) return `<div class="panel pixbox"><h2>TASK 2 OF 2</h2><div class="task"><div class="tt">REACH THE 2026 CODE MINIMUM</div>${cr.c2.map(row).join('')}
+    <button class="btn primary" data-submit="2" ${cr.t2?'':'disabled'}>SUBMIT TASK 2</button></div><p class="hint">Task 1 code: <b style="color:#ffe9a8">${S.done[1]}</b>. Start from your Task 1 design; you have a bigger budget now.</p></div>`;
+  return `<div class="panel pixbox"><h2>BOTH TASKS DONE</h2><p class="hint">Task 1 code: <b style="color:#ffe9a8">${S.done[1]}</b><br>Task 2 code: <b style="color:#ffe9a8">${S.done[2]}</b></p><p class="hint">Keep exploring, or try the Sandbox to change the rooms themselves.</p></div>`;
+}
+function renderHUD(){
+  if(!R){ $('#hud').innerHTML = `<div class="panel pixbox"><h2>SCORECARD</h2><p class="hint">Simulating…</p></div>`; return; }
+  const C = costing(MODEL), C0 = PREV;
+  const maxCost = Math.max(R0.cost, R90.cost, R26.cost, R.cost)*1.05;
+  const maxD = Math.max(R0.demandM2, R90.demandM2, R26.demandM2, R.demandM2)*1.05;
+  const savedC = R0.carbon - R.carbon; const savedCost = R0.cost - R.cost;
+  const payC = savedC>1 ? C.ec/savedC : null, payM = savedCost>1 ? C.cost/savedCost : null;
+  const cr = criteria();
+  const sv = SOLAR[S.season][S.hour].v; const alt = Math.asin(Math.max(-1,Math.min(1,sv[2])))*180/Math.PI; const az = (Math.atan2(sv[0],sv[1])*180/Math.PI+360)%360;
+  const compass = ['N','NE','E','SE','S','SW','W','NW'][Math.round(az/45)%8];
+  const task = S.done[1] ? 2 : 1, L = CONFIG.limits[task];
+  let h = `<div class="panel pixbox"><h2>${S.play==='sandbox'?'SANDBOX · TASK '+task+' LIMITS FOR REFERENCE':'BUDGET · TASK '+task}</h2>
+  ${meter('Money', C.cost, L.cost, v=>money(v))}${meter('Embodied CO₂', C.ec, L.ec, v=>fmt(v/1000,1)+' t')}
+  <div class="hint">Limits for Task ${task}: ${money(L.cost)} and ${fmt(L.ec/1000,1)} t CO₂e. Each option shows what it would add or save.</div></div>
+  <div class="panel pixbox"><h2>SCORECARD <span class="tag">INDICATIVE</span></h2>
+  <div class="metric"><span class="k">Heating & cooling bill (${OPTS.heating.choices.find(c=>c.v===S.opts.heating).t.replace(' (as built)','')})</span><span class="v">${money(R.cost)}/yr</span><span class="d">${delta(R.cost, C0&&C0.cost, '', true)}</span></div>
+  <div class="bars">${bar('Original', R0.cost, maxCost, '#9a9fb3', money(R0.cost))}${bar('1990s house', R90.cost, maxCost, '#e5a35b', money(R90.cost))}${bar('2026 code', R26.cost, maxCost, '#7bc96f', money(R26.cost))}${bar('Yours', R.cost, maxCost, '#f2b134', money(R.cost))}</div>
+  <div class="metric"><span class="k">Energy demand, heating + cooling <button class="info" data-guide="2">i</button></span><span class="v">${fmt(R.demandM2,1)} kWh/m²</span><span class="d">${delta(R.demandM2, C0&&C0.demandM2, ' kWh/m²', true, 1)}</span></div>
+  <div class="bars">${bar('Original', R0.demandM2, maxD, '#9a9fb3', fmt(R0.demandM2,1))}${bar('1990s house', R90.demandM2, maxD, '#e5a35b', fmt(R90.demandM2,1))}${bar('2026 code', R26.demandM2, maxD, '#7bc96f', fmt(R26.demandM2,1))}${bar('Yours', R.demandM2, maxD, '#f2b134', fmt(R.demandM2,1))}</div>
+  <table class="temps" style="margin:4px 0 6px"><tr><th></th><th>HEATING</th><th>COOLING</th><th>FANS</th><th>TOTAL</th></tr>${
+    [['Yours',R],['1990s house',R90],['2026 code',R26]].map(([n,x])=>`<tr><td>${n}</td><td class="t">${fmt(x.heat/x.heatedA,1)}</td><td class="t" style="color:${x.cool/x.heatedA>5?'#e5605b':'inherit'}">${fmt(x.cool/x.heatedA,1)}</td><td class="t">${fmt(x.fanM2||0,1)}</td><td class="t">${fmt(x.demandM2,1)}</td></tr>`).join('')}</table>
+  <div class="hint">kWh/m² a year to keep rooms at 18–20°C in winter <b>and</b> below 25°C in summer, calculated the same way for every design. FANS is the electricity an MVHR system needs to run all year. Electric heaters cannot cool, so summer overheating does not show up in the bill; it shows up here and in the "too hot" hours.</div>
+  <div class="metric"><span class="k">Hours too cold (&lt;16°C) / too hot (&gt;26°C, no air conditioning)</span><span class="v">${fmt(R.cold)} / ${fmt(R.hot)}</span><span class="d hint">Room-hours a year while rooms are in use. Cold hours include your heating; hot hours are for the building alone, because the tasks test the building, not the air conditioner.</span></div>
+  <div class="metric"><span class="k">Condensation on glass, 7am in winter</span><span class="v" style="font-size:18px">${R.condRooms.length? R.condRooms.length+' space'+(R.condRooms.length>1?'s':'') : 'none'}</span><span class="d ${R.condRooms.length?'warn':'down'}">${R.condRooms.length? R.condRooms.join(', ') : 'Glass stays above the dew point.'}${R.mouldRooms.length? '<br>Mould risk (RH > 80%): '+R.mouldRooms.join(', '):''}</span></div>
+  <div class="metric"><span class="k">Operational carbon</span><span class="v">${fmt(R.carbon)} kg CO₂e/yr</span><span class="d">${delta(R.carbon, C0&&C0.carbon, ' kg', true)}</span></div>
+  ${S.opts.pv? `<div class="metric"><span class="k">Solar: ${fmt(R.pvGen)} kWh/yr generated</span><span class="v">−${money(R.pvSave)}</span><span class="d hint">Bill after solar ${money(R.netCost)}/yr (can include other household power). Carbon avoided ${fmt(R.pvCarbon)} kg/yr. The building itself performs no better.</span></div>`:''}
+  <h3>RETROFIT BILL <button class="info" data-guide="0">i</button></h3>
+  <div class="metric"><span class="k">Up-front cost (rough)</span><span class="v">${money(C.cost)}</span></div>
+  <div class="metric"><span class="k">Embodied carbon (rough)</span><span class="v">${fmt(C.ec)} kg</span></div>
+  <div class="hint">Payback on bills: <b>${payM? fmt(payM)+' yrs':'—'}</b> · Carbon payback: <b>${payC? fmt(payC)+' yrs':'—'}</b></div>
+  ${C.items.length? `<details style="margin-top:6px"><summary class="hint" style="cursor:pointer">Itemised (${C.items.length})</summary>${C.items.map(it=>`<div class="hint">${it.label}: ${money(it.cost)}, ${fmt(it.ec)} kg${it.note?' ('+it.note+')':''}</div>`).join('')}</details>`:''}
+  </div>
+  <div class="panel pixbox"><h2>ROOM TEMPERATURES</h2>
+  <div class="hint">${SEASONS[S.season].label}, ${S.mode==='free'?'building alone (no heating or cooling)':'with your heating/cooling running'}. Sun at ${S.hour}:00: ${alt>0? Math.round(alt)+'° high, from the '+compass : 'below the horizon'}.</div>
+  <table class="temps"><tr><th>ROOM</th>${HOURS.map(hh=>`<th>${hh}:00</th>`).join('')}<th>RH 7AM</th></tr>${
+    MODEL.zones.map((z,i)=>{ const s=R.season[S.season][S.mode==='free'?'free':'cond']; return `<tr><td>${z.name.replace(' (upper)',' ↑')}</td>${HOURS.map(hh=>{ const t=s.T[i][hh]; return `<td class="t" style="color:${tempCol(t)}">${fmt(t,1)}</td>`; }).join('')}<td class="t" style="color:${s.RH[i][7]>80?'#e5605b':'#a6a9b8'}">${fmt(s.RH[i][7])}%</td></tr>`; }).join('')}</table>
+  <div class="hint" style="margin-top:4px">Outdoors: ${HOURS.map(hh=>fmt(outdoorT(S.season,hh),1)+'°').join(' / ')}</div></div>
+  ${taskPanel(cr)}`;
+  $('#hud').innerHTML = h;
+  const cur = S.done[1] ? (S.done[2] ? 0 : 2) : 1;
+  if(S.play==='sandbox'){ $('#chip1').textContent='SANDBOX'; $('#chip1').className='chip code'; }
+  else if(cur===0){ $('#chip1').textContent='BOTH TASKS DONE'; $('#chip1').className='chip ok'; }
+  else { const ok = cur===1?cr.t1:cr.t2; $('#chip1').textContent='TASK '+cur+' of 2: '+(ok?'READY TO SUBMIT':'IN PROGRESS'); $('#chip1').className='chip'+(ok?' ok':''); }
+  $('#chip2').style.display='none'; $('#btnSand').textContent = S.play==='sandbox' ? '◀ TASKS' : 'SANDBOX';
+}
+
+/* ===================== TOOLBAR ===================== */
+function seg(id, items, cur, key){
+  $(id).innerHTML = items.map(([v,t])=>`<button data-seg="${key}" data-v="${v}" class="${String(v)===String(cur)?'on':''}">${t}</button>`).join('');
+}
+function renderToolbar(){
+  seg('#segView', [['cutaway','CUTAWAY'],['thermal','THERMAL'],['roof','ROOF']], S.view, 'view');
+  seg('#segSeason', [['winter','WINTER'],['spring','SPR/AUT'],['summer','SUMMER']], S.season, 'season');
+  seg('#segTime', HOURS.map(h=>[h, (h<10?'0':'')+h+':00']), S.hour, 'hour');
+  seg('#segMode', [['free','BUILDING ALONE'],['cond','WITH SYSTEM']], S.mode, 'mode');
+  if(!$('#segFloor')){ const sp=document.createElement('span'); sp.innerHTML='<span class="tlabel">FLOOR</span><span class="seg" id="segFloor"></span>'; $('#rotR').parentNode.after(sp); }
+  seg('#segFloor', [['ground','GROUND'],['upper','UPPER']], S.floor, 'floor');
+  $('#legend').style.display = S.view==='thermal' ? 'flex':'none';
+}
+
+/* ===================== RECOMPUTE ===================== */
+let busy = false, pending = false;
+function recompute(){
+  if(busy){ pending=true; return; }
+  busy = true; $('#stageHint').textContent = 'Simulating…';
+  setTimeout(()=>{
+    try{
+      PREV = R ? {cost:R.cost, demandM2:R.demandM2, carbon:R.carbon} : null;
+      MODEL = buildMalabar(S.rooms, S.opts); R = evaluate(MODEL);
+    }catch(err){ console.error(err); toast('Simulation error: '+err.message); }
+    busy=false; $('#stageHint').textContent = 'Click a room to select it. Rotate to see every side. Thermal view colours rooms by temperature.';
+    renderAll(); save();
+    if(pending){ pending=false; recompute(); }
+  }, 20);
+}
+function renderAll(){ renderToolbar(); renderEdit(); renderHUD(); render(); }
+
+/* ===================== EDITING ===================== */
+function overlaps(a,b){ return a.x0<b.x1 && b.x0<a.x1 && a.y0<b.y1 && b.y0<a.y1; }
+function levelsOf(r){ return bandsOf(r).map(b=>b.lvl); }
+function sharesLevel(a,b){ const la=levelsOf(a), lb=levelsOf(b); return la.some(l=>lb.includes(l)); }
+function moveWall(i, d, delta){
+  const r = S.rooms[i]; const base = BASE_ROOMS[i];
+  const geo = MODEL.geo; if(geo.per[i].courtEdges.some(e=>e.dir===d)) return toast('Courtyard-facing walls are fixed in this version.');
+  const nr = Object.assign({}, r);
+  if(d==='N') nr.y0 -= delta; if(d==='S') nr.y1 += delta; if(d==='W') nr.x0 -= delta; if(d==='E') nr.x1 += delta;
+  if(nr.x1-nr.x0<4 || nr.y1-nr.y0<4) return toast('Rooms must be at least 2 m across.');
+  if(Math.abs(nr.x0-base.x0)>8||Math.abs(nr.x1-base.x1)>8||Math.abs(nr.y0-base.y0)>8||Math.abs(nr.y1-base.y1)>8) return toast('That is as far as this wall can move (4 m).');
+  // neighbour sharing the whole wall on the same level: move the partition
+  const nbIdx = S.rooms.findIndex((o,j)=> j!==i && o.type!=='court' && (o.lvl||0)===(r.lvl||0) && (
+    (d==='E' && o.x0===r.x1 && o.y0===r.y0 && o.y1===r.y1) || (d==='W' && o.x1===r.x0 && o.y0===r.y0 && o.y1===r.y1) ||
+    (d==='S' && o.y0===r.y1 && o.x0===r.x0 && o.x1===r.x1) || (d==='N' && o.y1===r.y0 && o.x0===r.x0 && o.x1===r.x1)));
+  let nb = null;
+  if(nbIdx>=0){ nb = Object.assign({}, S.rooms[nbIdx]);
+    if(d==='E') nb.x0 += delta; if(d==='W') nb.x1 -= delta; if(d==='S') nb.y0 += delta; if(d==='N') nb.y1 -= delta;
+    if(nb.x1-nb.x0<4 || nb.y1-nb.y0<4) return toast(nb.name+' would be too small.'); }
+  for(let j=0;j<S.rooms.length;j++){ if(j===i||j===nbIdx) continue; const o=S.rooms[j]; if(sharesLevel(o,nr) && overlaps(o,nr)) return toast('That would run into '+o.name+'.'); }
+  pushHist(); S.rooms[i]=nr; if(nb) S.rooms[nbIdx]=nb; recompute();
+}
+
+/* ===================== MODALS ===================== */
+function openModal(id){ $(id).classList.add('show'); }
+function closeModals(){ document.querySelectorAll('.modal-bg').forEach(m=>{ if(m.id!=='mStart') m.classList.remove('show'); }); }
+function showInfo(key){ const g = GUIDE[key]; if(!g) return; $('#infoBody').innerHTML = `<h2>${g.t.toUpperCase()}</h2>${g.b}`; openModal('#mInfo'); }
+function showGuide(){
+  $('#infoBody').innerHTML = `<h2>FIELD GUIDE</h2><p class="hint">Short explanations of the ideas behind each choice. Use the <b>i</b> buttons for the one you're looking at.</p><div class="grid2">${
+    Object.values(GUIDE).concat(EXTRA_GUIDE).map(g=>`<div class="gcard"><h4>${g.t.toUpperCase()}</h4>${g.b}</div>`).join('')}</div>`;
+  openModal('#mInfo');
+}
+function showCook(){
+  $('#infoBody').innerHTML = `<h2>NIGEL COOK SAYS…</h2><p class="hint">Lightly edited from the interview transcripts. As you play, ask which of these ideas the numbers support, and which they challenge.</p>${COOK_QUOTES.map(q=>`<div class="quote">“${q[0]}”<span>${q[1]}</span></div>`).join('')}
+  <h3>THE WIND-RAIN DIAGRAM</h3><p>Cook's houses move from open garden, to trellis and pergola, to glass, to an enclosed, insulated "cave" with a fire, with food preparation at the heart. People move through the gradient by season and time of day, the way they add or remove clothing. Test it: change the season and time and see which spaces are comfortable when.</p>`;
+  openModal('#mInfo');
+}
+function summaryText(task){
+  const C = costing(MODEL); const o=S.opts;
+  const chosen = Object.keys(OPTS).filter(k=>String(o[k])!==String(ORIGINAL_OPTS[k])).map(k=>OPTS[k].label+': '+OPTS[k].choices.find(c=>String(c.v)===String(o[k])).t);
+  const roomCh = S.rooms.map((r,i)=>{ const b=BASE_ROOMS[i]; const ch=[]; if(r.x0!==b.x0||r.x1!==b.x1||r.y0!==b.y0||r.y1!==b.y1) ch.push('resized to '+fmt(MODEL.zones[i].A,1)+' m²'); if(r.h!==b.h) ch.push('height '+r.h.toFixed(1)+' m'); for(const k in r.glaze) if(r.glaze[k]!==b.glaze[k]) ch.push(k+' glazing '+Math.round(r.glaze[k]*100)+'%'); return ch.length? r.name+': '+ch.join(', '):null; }).filter(Boolean);
+  return `RETROFIT MALABAR: TASK ${task}
+Name: ${S.student.name}
+Student ID: ${S.student.id}
+Completion code: ${codeFor(S.student.id, task)}
+
+RESULTS (indicative)
+Heating & cooling bill: ${money(R.cost)}/yr (original ${money(R0.cost)}, 1990s house ${money(R90.cost)}, 2026 code house ${money(R26.cost)})
+Energy demand: ${fmt(R.demandM2,1)} kWh/m² (original ${fmt(R0.demandM2,1)}, 1990s ${fmt(R90.demandM2,1)}, 2026 code ${fmt(R26.demandM2,1)})
+Hours too cold / too hot: ${fmt(R.cold)} / ${fmt(R.hot)}
+Condensation risk: ${R.condRooms.length? R.condRooms.join(', '):'none'}
+Operational carbon: ${fmt(R.carbon)} kg CO2e/yr (original ${fmt(R0.carbon)})
+Retrofit cost (rough): ${money(C.cost)} · Embodied carbon (rough): ${fmt(C.ec)} kg CO2e
+
+CHANGES
+${chosen.concat(roomCh).map(s=>'- '+s).join('\n') || '- none'}
+
+REFLECTION
+${S.refl[task]}`;
+}
+function showSubmit(task){
+  const prompt = task===1
+    ? 'In 60 words or more: which single change made the biggest difference, and why? What did it cost in money and embodied carbon, and was it worth it?'
+    : 'In 60 words or more: would Nigel Cook approve of your house? Use at least one idea from the interview (a "contained volume of air", the overcoat, "dynamic not passive", "two north sides", regional materials) to argue yes or no.';
+  $('#submitBody').innerHTML = `<h2>SUBMIT TASK ${task}</h2><p>${prompt}</p><textarea id="reflTxt">${S.refl[task]||''}</textarea><div class="hint" id="wc"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><button class="btn" data-close>CANCEL</button><button class="btn primary" id="btnReveal">GET MY CODE ▶</button></div><div id="codeOut"></div>`;
+  openModal('#mSubmit');
+  const ta = $('#reflTxt'); const upd=()=>{ const n=(ta.value.trim().match(/\S+/g)||[]).length; $('#wc').textContent = n+' words'; }; ta.oninput=upd; upd();
+  $('#btnReveal').onclick = ()=>{
+    const n=(ta.value.trim().match(/\S+/g)||[]).length; if(n<60) return toast('Write at least 60 words first.');
+    S.refl[task]=ta.value.trim(); const code = codeFor(S.student.id, task); S.done[task]=code; save();
+    $('#codeOut').innerHTML = `<div class="codebox">${code}</div><p class="hint">Submit this code (and the summary below) where your lecturer asks. The code is linked to student ID <b>${S.student.id}</b>.</p><textarea id="sumTxt" readonly style="min-height:200px;font-family:monospace;font-size:12px">${summaryText(task).replace(/</g,'&lt;')}</textarea><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap"><button class="btn" id="btnCopy">COPY SUMMARY</button><button class="btn primary" data-close>${task===1?'CONTINUE TO TASK 2 ▶':'CLOSE'}</button></div>`;
+    $('#btnCopy').onclick=()=>{ const t=$('#sumTxt'); t.select(); try{ navigator.clipboard.writeText(t.value).then(()=>toast('Copied.')).catch(()=>{ document.execCommand('copy'); toast('Copied.'); }); }catch(e){ document.execCommand('copy'); toast('Copied.'); } };
+    $('#btnReveal').parentNode.style.display='none'; renderHUD(); $('#codeOut').scrollIntoView({block:'nearest'});
+  };
+}
+function showInstructor(){
+  $('#instrBody').innerHTML = `<h2>INSTRUCTOR</h2><p class="hint">Enter the instructor password.</p><input id="ipw" type="password"><div style="text-align:right;margin-top:8px"><button class="btn primary" id="ipwGo">OPEN</button></div>`;
+  openModal('#mInstr');
+  $('#ipwGo').onclick = ()=>{
+    if($('#ipw').value!==CONFIG.instructorPass) return toast('Incorrect password.');
+    $('#instrBody').innerHTML = `<h2>INSTRUCTOR: CHECK CODES</h2>
+    <h3>ONE STUDENT</h3><input id="iId" placeholder="Student ID"><div class="hint" id="iOut" style="margin-top:6px"></div>
+    <h3>BATCH CHECK</h3><p class="hint">Paste one submission per line: student ID, then the code (comma, tab or space separated).</p><textarea id="iBatch" placeholder="12345678, KAURI-317"></textarea><div style="text-align:right;margin-top:6px"><button class="btn" id="iCheck">CHECK</button></div><div id="iRes"></div>
+    <h3>CLASS LIST: CHECK FOR CLASHES</h3><p class="hint">Paste every student ID (one per line) to list each student's two codes and flag any two students who would share a code. There are about 2.2 million possible codes, so a clash is very unlikely.</p><textarea id="iRoster" placeholder="12345678"></textarea><div style="text-align:right;margin-top:6px"><button class="btn" id="iRosterGo">LIST CODES</button></div><div id="iRosterRes"></div>`;
+    $('#iRosterGo').onclick = ()=>{ const ids=[...new Set($('#iRoster').value.split(/[\n,;\t]+/).map(x=>x.trim()).filter(Boolean))]; const seen={}; const rows=ids.map(id=>{ const c1=codeFor(id,1), c2=codeFor(id,2); [c1,c2].forEach(c=>{ (seen[c]=seen[c]||[]).push(id); }); return [id,c1,c2]; });
+      const clash=Object.entries(seen).filter(([c,l])=>l.length>1);
+      $('#iRosterRes').innerHTML = `<p class="hint">${ids.length} students · ${clash.length? '<b style="color:#e5605b">'+clash.length+' clash(es): '+clash.map(([c,l])=>c+' ('+l.join(', ')+')').join('; ')+'</b>' : '<b style="color:#7bc96f">no clashes</b>'}</p><table class="temps"><tr><th>ID</th><th>TASK 1</th><th>TASK 2</th></tr>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</table>`; };
+    $('#iId').oninput = e=>{ const id=e.target.value; $('#iOut').innerHTML = id.trim()? `Task 1: <b>${codeFor(id,1)}</b> · Task 2: <b>${codeFor(id,2)}</b>` : ''; };
+    $('#iCheck').onclick = ()=>{
+      const rows = $('#iBatch').value.split(/\n/).map(l=>l.trim()).filter(Boolean).map(l=>{ const p=l.split(/[\s,;\t]+/); const id=p[0], code=(p[1]||'').toUpperCase(); const t = code===codeFor(id,1)?'Task 1': code===codeFor(id,2)?'Task 2':null; return `<tr><td>${id}</td><td>${code}</td><td style="color:${t?'#7bc96f':'#e5605b'}">${t?'✔ '+t:'✘ no match'}</td></tr>`; });
+      $('#iRes').innerHTML = `<table class="temps"><tr><th>ID</th><th>CODE</th><th>RESULT</th></tr>${rows.join('')}</table>`;
+    };
+  };
+}
+
+/* ===================== EVENTS ===================== */
+document.addEventListener('click', e=>{
+  const t = e.target.closest('button, [data-close]'); if(!t) return;
+  if(t.hasAttribute('data-close')) return closeModals();
+  if(t.dataset.info) return showInfo(t.dataset.info);
+  if(t.dataset.guide!==undefined){ const g=EXTRA_GUIDE[+t.dataset.guide]; $('#infoBody').innerHTML=`<h2>${g.t.toUpperCase()}</h2>${g.b}`; return openModal('#mInfo'); }
+  if(t.dataset.opt){ const k=t.dataset.opt; let v=t.dataset.v; const sample=OPTS[k].choices[0].v; if(typeof sample==='number') v=parseFloat(v); if(String(S.opts[k])===String(v)) return; pushHist(); S.opts[k]=v; return recompute(); }
+  if(t.dataset.seg){ const k=t.dataset.seg; let v=t.dataset.v; if(k==='hour') v=+v; S[k]=v; if(k==='floor') { if(S.sel!==null && (S.rooms[S.sel].lvl||0)!==(v==='upper'?1:0) && S.rooms[S.sel].type!=='court') S.sel=null; renderEdit(); } renderToolbar(); renderHUD(); render(); return; }
+  if(t.dataset.submit){ if(S.play!=='task') return; return showSubmit(+t.dataset.submit); }
+  if(t.dataset.act){
+    const a=t.dataset.act; if(a==='deselect'){ S.sel=null; renderEdit(); render(); return; }
+    if(a==='sandbox') return setPlay('sandbox'); if(a==='tasks') return setPlay('task');
+    if(S.play!=='sandbox') return;
+    const i=S.sel; if(i===null) return; const r=S.rooms[i];
+    if(a==='h+'||a==='h-'){ const isC=r.type==='court'; const mn=isC?3.0:2.1, mx=isC?7.5:4.5; const nh=Math.round((r.h+(a==='h+'?0.3:-0.3))*10)/10; if(nh<mn||nh>mx) return toast('Height must be between '+mn+' and '+mx+' m.'); if(r.lvl===1 && nh>3.6) return toast('Upstairs rooms can be up to 3.6 m.'); pushHist(); r.h=nh; return recompute(); }
+    if(a==='wall') return moveWall(i, t.dataset.d, +t.dataset.delta);
+    if(a==='glz'){ const d=t.dataset.d; const nv=Math.round(((r.glaze[d]||0)+(+t.dataset.delta))*10)/10; if(nv<0||nv>1) return; pushHist(); r.glaze[d]=nv; return recompute(); }
+  }
+});
+$('#btnGuide').onclick = showGuide; $('#btnCook').onclick = showCook;
+$('#btnUndo').onclick = ()=>{ const h=HIST.pop(); if(!h) return toast('Nothing to undo.'); const d=JSON.parse(h); S.rooms=d.rooms; S.opts=d.opts; recompute(); };
+$('#btnReset').onclick = ()=>{ if(!confirmReset()) return; pushHist(); S.rooms=clone(BASE_ROOMS); S.opts=clone(ORIGINAL_OPTS); S.sel=null; recompute(); };
+$('#btnSand').onclick = ()=> setPlay(S.play==='sandbox'?'task':'sandbox');
+let resetArm=0; function confirmReset(){ const now=Date.now(); if(now-resetArm<3000){ resetArm=0; return true; } resetArm=now; toast('Press RESET again to go back to the original house.'); return false; }
+$('#rotL').onclick = ()=>{ S.rot=(S.rot+3)%4; render(); }; $('#rotR').onclick = ()=>{ S.rot=(S.rot+1)%4; render(); };
+cv.addEventListener('click', ev=>{ const i=pick(ev); S.sel = i; renderEdit(); render(); });
+cv.addEventListener('mousemove', ev=>{ const i=pick(ev); const tip=$('#tip'); if(i===null||!R){ tip.style.display='none'; return; }
+  const vp=$('#viewport').getBoundingClientRect(); tip.style.display='block'; tip.style.left=(ev.clientX-vp.left+14)+'px'; tip.style.top=(ev.clientY-vp.top+10)+'px';
+  tip.innerHTML=`<b>${S.rooms[i].name}</b> · ${fmt(zoneTemp(i),1)}°C · ${fmt(zoneRH(i))}% RH`; });
+cv.addEventListener('mouseleave', ()=>$('#tip').style.display='none');
+window.addEventListener('resize', ()=>render());
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModals(); });
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click', e=>{ if(e.target===m && m.id!=='mStart') closeModals(); }));
+let titleClicks=0, titleT=0; $('#title').addEventListener('click', ()=>{ const n=Date.now(); titleClicks = (n-titleT<800)? titleClicks+1 : 1; titleT=n; if(titleClicks>=5){ titleClicks=0; showInstructor(); } });
+
+/* ===================== START ===================== */
+function start(){
+  const name=$('#inName').value.trim(), id=$('#inId').value.trim();
+  if(!name || !id) return toast('Enter your name and student ID.');
+  S.student={name,id}; const resumed = load();
+  $('#who').textContent = name+' · '+id; $('#mStart').classList.remove('show');
+  if(resumed) toast('Welcome back. Your previous design has been restored.');
+  recompute();
+}
+$('#btnStart').onclick = start; $('#inId').addEventListener('keydown', e=>{ if(e.key==='Enter') start(); });
+function boot(){
+  openModal('#mStart'); renderToolbar(); renderHUD();
+  setTimeout(()=>{
+    BASEMODEL = buildMalabar(clone(BASE_ROOMS), clone(ORIGINAL_OPTS));
+    R0 = evaluate(BASEMODEL); const HA = BASEMODEL.zones.filter(z=>z.heated).reduce((s,z)=>s+z.A,0); R90 = evaluate(buildReference('1990',HA)); R26 = evaluate(buildReference('2026',HA));
+    MODEL = BASEMODEL; R = R0; renderAll();
+    if(location.hash==='#instructor') showInstructor();
+  }, 30);
+}
+boot();
+</script>
+</body></html>
